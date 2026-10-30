@@ -71,3 +71,4 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 [UninstallDelete]
 Type: filesandordirs; Name: "{commoncf}\VST3\{#MyPluginName}"
 Type: filesandordirs; Name: "{app}"
+
