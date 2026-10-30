@@ -281,6 +281,126 @@ public:
 };
 
 //==============================================================================
+// License Activation Modal Overlay (SignalForge Bosendorfer 290)
+//==============================================================================
+class LicenseActivationOverlay : public juce::Component
+{
+public:
+    LicenseActivationOverlay()
+    {
+        emailEditor.setMultiLine(false);
+        emailEditor.setTextToShowWhenEmpty("Enter registered email (e.g. user@domain.com)", juce::Colour(0xff807b72));
+        emailEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff141312));
+        emailEditor.setColour(juce::TextEditor::outlineColourId, juce::Colour(0xff5a554c));
+        emailEditor.setColour(juce::TextEditor::textColourId, juce::Colour(0xfff2e8c9));
+        addAndMakeVisible(emailEditor);
+
+        serialEditor.setMultiLine(false);
+        serialEditor.setTextToShowWhenEmpty("XXXX-XXXX-XXXX-XXXX", juce::Colour(0xff807b72));
+        serialEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff141312));
+        serialEditor.setColour(juce::TextEditor::outlineColourId, juce::Colour(0xff5a554c));
+        serialEditor.setColour(juce::TextEditor::textColourId, juce::Colour(0xfff5d76e));
+        addAndMakeVisible(serialEditor);
+
+        activateButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7a6020));
+        activateButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xfffff9e6));
+        addAndMakeVisible(activateButton);
+        activateButton.onClick = [this]()
+        {
+            if (LicenseManager::getInstance().activateLicense(emailEditor.getText(), serialEditor.getText()))
+            {
+                statusMessage = "License activated successfully!";
+                statusIsError = false;
+                if (onLicenseChanged)
+                    onLicenseChanged();
+                setVisible(false);
+            }
+            else
+            {
+                statusMessage = "Invalid email or serial key. Expected format: XXXX-XXXX-XXXX-XXXX";
+                statusIsError = true;
+                repaint();
+            }
+        };
+
+        closeButton.onClick = [this]()
+        {
+            setVisible(false);
+            if (onLicenseChanged)
+                onLicenseChanged();
+        };
+        addAndMakeVisible(closeButton);
+    }
+
+    void refreshFromManager()
+    {
+        if (LicenseManager::getInstance().isLicensed())
+        {
+            emailEditor.setText(LicenseManager::getInstance().getLicensedEmail(), juce::dontSendNotification);
+            statusMessage = "Product is licensed and activated.";
+            statusIsError = false;
+        }
+        repaint();
+    }
+
+    void paint(juce::Graphics& g) override
+    {
+        g.fillAll(juce::Colour(0xc80a0908));
+
+        auto card = getLocalBounds().toFloat().withSizeKeepingCentre(440.0f, 250.0f);
+        g.setColour(juce::Colour(0xff1e1c1a));
+        g.fillRoundedRectangle(card, 8.0f);
+        g.setColour(juce::Colour(0xffd4af37));
+        g.drawRoundedRectangle(card, 8.0f, 1.5f);
+
+        g.setColour(juce::Colour(0xfff5d76e));
+        g.setFont(juce::FontOptions(16.0f, juce::Font::bold));
+        g.drawText("SIGNALFORGE LICENSE ACTIVATION",
+                   card.withTop(card.getY() + 14.0f).withHeight(24.0f),
+                   juce::Justification::centred);
+
+        g.setColour(juce::Colour(0xffb8b2a6));
+        g.setFont(juce::FontOptions(11.5f));
+        g.drawText("Bosendorfer Imperial 290  -  Enter Email & Serial Key",
+                   card.withTop(card.getY() + 38.0f).withHeight(18.0f),
+                   juce::Justification::centred);
+
+        g.setColour(juce::Colour(0xffdcd8d0));
+        g.setFont(juce::FontOptions(11.0f, juce::Font::bold));
+        g.drawText("Email:", static_cast<int>(card.getX() + 26.0f), static_cast<int>(card.getY() + 72.0f), 80, 24, juce::Justification::centredLeft);
+        g.drawText("Serial Key:", static_cast<int>(card.getX() + 26.0f), static_cast<int>(card.getY() + 112.0f), 80, 24, juce::Justification::centredLeft);
+
+        if (statusMessage.isNotEmpty())
+        {
+            g.setColour(statusIsError ? juce::Colour(0xffff6b5b) : juce::Colour(0xff5ce63c));
+            g.setFont(juce::FontOptions(11.0f, juce::Font::bold));
+            g.drawText(statusMessage,
+                       card.withTop(card.getY() + 150.0f).withHeight(20.0f),
+                       juce::Justification::centred);
+        }
+    }
+
+    void resized() override
+    {
+        auto card = getLocalBounds().withSizeKeepingCentre(440, 250);
+        emailEditor.setBounds(card.getX() + 110, card.getY() + 70, 300, 26);
+        serialEditor.setBounds(card.getX() + 110, card.getY() + 110, 300, 26);
+        activateButton.setBounds(card.getX() + 110, card.getY() + 188, 144, 30);
+        closeButton.setBounds(card.getX() + 266, card.getY() + 188, 144, 30);
+    }
+
+    std::function<void()> onLicenseChanged;
+
+private:
+    juce::TextEditor emailEditor;
+    juce::TextEditor serialEditor;
+    juce::TextButton activateButton { "Activate License" };
+    juce::TextButton closeButton    { "Close / Demo" };
+    juce::String statusMessage;
+    bool statusIsError { false };
+};
+
+//==============================================================================
 // Main Plugin Editor (3-Layer Composited Layout Matching Prototype_look_and_feel.png)
 //==============================================================================
 class BosendorferAudioProcessorEditor : public juce::AudioProcessorEditor,
@@ -313,10 +433,12 @@ private:
     MicOverlayLayer micOverlayLayer;
 
     // Layer 3: Header Bar Controls (Matching Prototype_look_and_feel.png top right)
+    juce::TextButton licenseButton   { "License" };
     juce::ComboBox presetSelector;
     juce::TextButton stdSf2Button    { "Standard" };
     juce::TextButton brightSf2Button { "Brite" };
     juce::TextButton viewToggleBtn   { "FX / Mics" };
+    LicenseActivationOverlay licenseOverlay;
 
     // Pedal Buttons
     juce::TextButton unaCordaButton { "Una Corda (CC 67)" };

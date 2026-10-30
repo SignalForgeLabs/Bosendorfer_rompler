@@ -246,6 +246,14 @@ BosendorferAudioProcessorEditor::BosendorferAudioProcessorEditor(BosendorferAudi
     addChildComponent(micOverlayLayer);
 
     // --- Layer 3: Header Bar Controls ---
+    addAndMakeVisible(licenseButton);
+    licenseButton.onClick = [this]()
+    {
+        licenseOverlay.refreshFromManager();
+        licenseOverlay.setVisible(!licenseOverlay.isVisible());
+        licenseOverlay.toFront(true);
+    };
+
     addAndMakeVisible(presetSelector);
     presetSelector.onChange = [this]()
     {
@@ -402,6 +410,18 @@ BosendorferAudioProcessorEditor::BosendorferAudioProcessorEditor(BosendorferAudi
     keyboardComponent.setScrollButtonsVisible(false);
     addAndMakeVisible(keyboardComponent);
 
+    addChildComponent(licenseOverlay);
+    licenseOverlay.onLicenseChanged = [this]()
+    {
+        updateBankButtonStates();
+        repaint();
+    };
+    if (!LicenseManager::getInstance().isLicensed())
+    {
+        licenseOverlay.refreshFromManager();
+        licenseOverlay.setVisible(true);
+    }
+
     refreshPresetComboBox();
     updateBankButtonStates();
     updateLayerState();
@@ -499,6 +519,10 @@ void BosendorferAudioProcessorEditor::updateBankButtonStates()
                                 juce::dontSendNotification);
     brightSf2Button.setToggleState(bank == BosendorferAudioProcessor::EmbeddedBank::Bright,
                                    juce::dontSendNotification);
+
+    const bool licensed = LicenseManager::getInstance().isLicensed();
+    licenseButton.setButtonText(licensed ? "Licensed" : "Activate");
+    licenseButton.setToggleState(licensed, juce::dontSendNotification);
 }
 
 void BosendorferAudioProcessorEditor::timerCallback()
@@ -716,10 +740,12 @@ void BosendorferAudioProcessorEditor::resized()
     //==========================================================================
     // Layer 3 Top Header Bar Controls (Matching Prototype_look_and_feel.png)
     //==========================================================================
+    licenseButton.setBounds(scaledBounds(446, 14, 76, 24));
     presetSelector.setBounds(scaledBounds(530, 14, 180, 24));
     stdSf2Button.setBounds(scaledBounds(718, 14, 78, 24));
     brightSf2Button.setBounds(scaledBounds(802, 14, 74, 24));
     viewToggleBtn.setBounds(scaledBounds(884, 14, 96, 24));
+    licenseOverlay.setBounds(scaledBounds(177, 70, 654, 383));
 
     //==========================================================================
     // Center Viewport Top Overlay Bar (Left Mic, Bypass, Right Mic, Room Space)

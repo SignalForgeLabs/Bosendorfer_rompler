@@ -89,6 +89,7 @@ target_sources(BosendorferImperial
         src/SoundFontEngine.h
         src/PianoAcousticEngine.h
         src/DamperClunkModel.h
+        src/LicenseManager.h
         libs/tsf.h
 )
 
@@ -122,6 +123,7 @@ target_link_libraries(BosendorferImperial
         ${CMAKE_DL_LIBS}
         juce::juce_audio_utils
         juce::juce_audio_processors
+        juce::juce_cryptography
         juce::juce_dsp
         juce::juce_gui_basics
         juce::juce_gui_extra

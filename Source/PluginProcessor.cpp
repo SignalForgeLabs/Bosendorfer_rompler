@@ -54,6 +54,7 @@ BosendorferAudioProcessor::BosendorferAudioProcessor()
                          .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       apvts(*this, nullptr, "Parameters", createParameterLayout())
 {
+    LicenseManager::getInstance().checkStoredLicense();
     loadEmbeddedSoundFont(EmbeddedBank::Standard);
 }
 

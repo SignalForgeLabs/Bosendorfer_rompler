@@ -6,6 +6,7 @@
 #include "SoundFontEngine.h"
 #include "PianoAcousticEngine.h"
 #include "DamperClunkModel.h"
+#include "LicenseManager.h"
 #include "MicAssetLoader.h"
 #include <atomic>
 
