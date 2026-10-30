@@ -97,6 +97,7 @@ private:
     int activeRoomIndex { -1 };
 
     double currentSampleRate { 44100.0 };
+    int64_t trialTimerSamples { 0 };
     bool pedalWasDown { false };
     double pedalDownTimestamp { 0.0 };
 

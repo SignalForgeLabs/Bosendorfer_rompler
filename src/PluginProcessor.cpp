@@ -398,6 +398,26 @@ void BosendorferAudioProcessor::renderSoundFontBlock(juce::AudioBuffer<float>& b
 void BosendorferAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
+
+    // 1. Check license state flag
+    const bool licensed = LicenseManager::getInstance().isLicensed();
+
+    if (!licensed)
+    {
+        // 15-minute trial demo mode: mute after timeout
+        trialTimerSamples += buffer.getNumSamples();
+        const double sampleRate = getSampleRate() > 0 ? getSampleRate() : 44100.0;
+
+        if (trialTimerSamples > (int64_t)(15.0 * 60.0 * sampleRate))
+        {
+            buffer.clear();
+            rmsLeft.store(0.0f, std::memory_order_relaxed);
+            rmsRight.store(0.0f, std::memory_order_relaxed);
+            return;
+        }
+    }
+
+    // 2. Standard TSF MIDI & convolution processing continues below...
     buffer.clear();
 
     const int numSamples = buffer.getNumSamples();
