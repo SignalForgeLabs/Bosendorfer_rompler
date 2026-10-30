@@ -1,0 +1,25 @@
+# Build & binary outputs
+build/
+.cache/
+*.so
+*.vst3
+*.component
+*.clap
+*.a
+*.o
+*.out
+
+# Local JUCE symlink (CI fetches JUCE via CMake FetchContent)
+/JUCE
+
+# IDE & OS clutter
+.DS_Store
+Thumbs.db
+compile_commands.json
+
+# Packaging dist outputs
+dist/
+*.pkg
+*.dmg
+*.tar.gz
+*.zip

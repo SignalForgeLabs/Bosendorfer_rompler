@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "CMake: Configure",
+      "type": "shell",
+      "command": "cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "CMake: Build All",
+      "type": "shell",
+      "command": "cmake --build build -j$(nproc)",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "CMake: Clean",
+      "type": "shell",
+      "command": "cmake --build build --target clean",
+      "problemMatcher": []
+    }
+  ]
+}

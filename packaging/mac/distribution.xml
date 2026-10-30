@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="1">
+    <title>Bosendorfer Imperial 290 Concert Grand</title>
+    <welcome file="welcome.html" mime-type="text/html"/>
+    <options customize="always" require-scripts="false" hostArchitectures="x86_64,arm64"/>
+
+    <!-- Component Packages -->
+    <pkg-ref id="com.SignalForgeLabs.BosendorferImperial290.vst3" version="1.0.0" onConclusion="none">Bosendorfer_VST3.pkg</pkg-ref>
+    <pkg-ref id="com.SignalForgeLabs.BosendorferImperial290.au" version="1.0.0" onConclusion="none">Bosendorfer_AU.pkg</pkg-ref>
+    <pkg-ref id="com.SignalForgeLabs.BosendorferImperial290.app" version="1.0.0" onConclusion="none">Bosendorfer_Standalone.pkg</pkg-ref>
+    <pkg-ref id="com.SignalForgeLabs.BosendorferImperial290.docs" version="1.0.0" onConclusion="none">Bosendorfer_Support.pkg</pkg-ref>
+
+    <!-- User Selection Tree -->
+    <choices-outline>
+        <line choice="choiceVST3"/>
+        <line choice="choiceAU"/>
+        <line choice="choiceStandalone"/>
+        <line choice="choiceDocs"/>
+    </choices-outline>
+
+    <choice id="choiceVST3" title="VST3 Plugin" description="Installs the 64-bit VST3 plugin into /Library/Audio/Plug-Ins/VST3/." start_selected="true">
+        <pkg-ref id="com.SignalForgeLabs.BosendorferImperial290.vst3"/>
+    </choice>
+
+    <choice id="choiceAU" title="AudioUnit (AU) Plugin" description="Installs the AudioUnit component into /Library/Audio/Plug-Ins/Components/ for Logic Pro and GarageBand." start_selected="true">
+        <pkg-ref id="com.SignalForgeLabs.BosendorferImperial290.au"/>
+    </choice>
+
+    <choice id="choiceStandalone" title="Standalone Application" description="Installs the standalone app into /Applications/." start_selected="true">
+        <pkg-ref id="com.SignalForgeLabs.BosendorferImperial290.app"/>
+    </choice>
+
+    <choice id="choiceDocs" title="Documentation &amp; User Guide" description="Installs documentation into /Library/Audio/Presets/SignalForgeLabs/BosendorferImperial290/." start_selected="true">
+        <pkg-ref id="com.SignalForgeLabs.BosendorferImperial290.docs"/>
+    </choice>
+</installer-gui-script>
