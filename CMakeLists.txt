@@ -40,7 +40,6 @@ juce_add_binary_data(PluginAssets
         assets/RCA_Ribbon_R.png
         "assets/RCA 44BX NEVE.wav"
         # SoundFont Banks & Room IRs
-        assets/bosendorfer_imperial.sf2
         assets/BOSENDRF.SF2
         assets/BOSENBRI.SF2
         assets/IRs/Room_ViennaKonzerthaus.wav
