@@ -9,21 +9,21 @@ namespace
         switch (juce::jlimit(0, 3, index))
         {
             case 0:
-                data = BinaryData::Mic_Neumann_KM184_wav;
-                size = static_cast<size_t>(BinaryData::Mic_Neumann_KM184_wavSize);
+                data = BinaryData::Mic_Neumann_KM184_bin;
+                size = static_cast<size_t>(BinaryData::Mic_Neumann_KM184_binSize);
                 return;
             case 1:
-                data = BinaryData::Mic_Neumann_TLM103_wav;
-                size = static_cast<size_t>(BinaryData::Mic_Neumann_TLM103_wavSize);
+                data = BinaryData::Mic_Neumann_TLM103_bin;
+                size = static_cast<size_t>(BinaryData::Mic_Neumann_TLM103_binSize);
                 return;
             case 2:
-                data = BinaryData::Mic_Neumann_U87_wav;
-                size = static_cast<size_t>(BinaryData::Mic_Neumann_U87_wavSize);
+                data = BinaryData::Mic_Neumann_U87_bin;
+                size = static_cast<size_t>(BinaryData::Mic_Neumann_U87_binSize);
                 return;
             case 3:
             default:
-                data = BinaryData::RCA_44BX_NEVE_wav;
-                size = static_cast<size_t>(BinaryData::RCA_44BX_NEVE_wavSize);
+                data = BinaryData::RCA_44BX_NEVE_bin;
+                size = static_cast<size_t>(BinaryData::RCA_44BX_NEVE_binSize);
                 return;
         }
     }
@@ -33,17 +33,17 @@ namespace
         switch (index)
         {
             case 0:
-                data = BinaryData::Room_ViennaKonzerthaus_wav;
-                size = static_cast<size_t>(BinaryData::Room_ViennaKonzerthaus_wavSize);
+                data = BinaryData::Room_ViennaKonzerthaus_bin;
+                size = static_cast<size_t>(BinaryData::Room_ViennaKonzerthaus_binSize);
                 break;
             case 1:
-                data = BinaryData::Room_MapleStage40ft_wav;
-                size = static_cast<size_t>(BinaryData::Room_MapleStage40ft_wavSize);
+                data = BinaryData::Room_MapleStage40ft_bin;
+                size = static_cast<size_t>(BinaryData::Room_MapleStage40ft_binSize);
                 break;
             case 2:
             default:
-                data = BinaryData::Room_ScoringStudioHall_wav;
-                size = static_cast<size_t>(BinaryData::Room_ScoringStudioHall_wavSize);
+                data = BinaryData::Room_ScoringStudioHall_bin;
+                size = static_cast<size_t>(BinaryData::Room_ScoringStudioHall_binSize);
                 break;
         }
     }
@@ -98,11 +98,11 @@ void BosendorferAudioProcessor::changeProgramName(int, const juce::String&) {}
 bool BosendorferAudioProcessor::loadEmbeddedSoundFont(EmbeddedBank bank)
 {
     const void* data = (bank == EmbeddedBank::Bright)
-                           ? static_cast<const void*>(BinaryData::BOSENBRI_SF2)
-                           : static_cast<const void*>(BinaryData::BOSENDRF_SF2);
+                           ? static_cast<const void*>(BinaryData::BOSENBRI_bin)
+                           : static_cast<const void*>(BinaryData::BOSENDRF_bin);
     const int size = (bank == EmbeddedBank::Bright)
-                         ? BinaryData::BOSENBRI_SF2Size
-                         : BinaryData::BOSENDRF_SF2Size;
+                         ? BinaryData::BOSENBRI_binSize
+                         : BinaryData::BOSENDRF_binSize;
     const juce::String label = (bank == EmbeddedBank::Bright)
                                    ? "Brite"
                                    : "Standard";
@@ -224,50 +224,22 @@ void BosendorferAudioProcessor::updateImpulses(bool forceReload)
     const int currentTrebleMic = static_cast<int>(apvts.getRawParameterValue(IDs::trebleMicType.getParamID())->load());
     const int currentRoom      = static_cast<int>(apvts.getRawParameterValue(IDs::roomIrType.getParamID())->load());
 
-#ifndef ASSETS_DIR_PATH
-#define ASSETS_DIR_PATH "/mnt/Storage/Projects/Bosendoter_mperial_Grand/assets"
-#endif
-
     if (forceReload || currentBassMic != activeBassMicIndex)
     {
         activeBassMicIndex = currentBassMic;
-        const juce::String wavName = getMicModelAssets(activeBassMicIndex).wavFileName;
-        juce::File localWav = juce::File(ASSETS_DIR_PATH).getChildFile("IRs").getChildFile(wavName);
-        if (!localWav.existsAsFile())
-            localWav = juce::File(ASSETS_DIR_PATH).getChildFile(wavName);
-
-        if (localWav.existsAsFile())
-        {
-            micLoader.queueLoad(MicSlot::Bass, localWav);
-        }
-        else
-        {
-            const void* data = nullptr;
-            size_t size = 0;
-            getMicImpulseResource(activeBassMicIndex, data, size);
-            micLoader.queueMemoryLoad(MicSlot::Bass, data, size);
-        }
+        const void* data = nullptr;
+        size_t size = 0;
+        getMicImpulseResource(activeBassMicIndex, data, size);
+        micLoader.queueMemoryLoad(MicSlot::Bass, data, size);
     }
 
     if (forceReload || currentTrebleMic != activeTrebleMicIndex)
     {
         activeTrebleMicIndex = currentTrebleMic;
-        const juce::String wavName = getMicModelAssets(activeTrebleMicIndex).wavFileName;
-        juce::File localWav = juce::File(ASSETS_DIR_PATH).getChildFile("IRs").getChildFile(wavName);
-        if (!localWav.existsAsFile())
-            localWav = juce::File(ASSETS_DIR_PATH).getChildFile(wavName);
-
-        if (localWav.existsAsFile())
-        {
-            micLoader.queueLoad(MicSlot::Treble, localWav);
-        }
-        else
-        {
-            const void* data = nullptr;
-            size_t size = 0;
-            getMicImpulseResource(activeTrebleMicIndex, data, size);
-            micLoader.queueMemoryLoad(MicSlot::Treble, data, size);
-        }
+        const void* data = nullptr;
+        size_t size = 0;
+        getMicImpulseResource(activeTrebleMicIndex, data, size);
+        micLoader.queueMemoryLoad(MicSlot::Treble, data, size);
     }
 
     if (forceReload || currentRoom != activeRoomIndex)

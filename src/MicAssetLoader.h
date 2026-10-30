@@ -8,6 +8,7 @@
 #include <functional>
 #include "BsendorferMicDSP.h"
 #include "PianoAcousticEngine.h"
+#include "AssetShield.h"
 
 enum class MicSlot
 {
@@ -104,6 +105,7 @@ private:
     void processJob(const MicLoadJob& job)
     {
         std::unique_ptr<juce::AudioFormatReader> reader;
+        juce::MemoryBlock decryptedBlock;
 
         if (job.irFile.existsAsFile())
         {
@@ -111,20 +113,29 @@ private:
         }
         else if (job.rawData != nullptr && job.rawDataSize > 0)
         {
-            auto memInput = std::make_unique<juce::MemoryInputStream>(job.rawData, job.rawDataSize, false);
+            decryptedBlock = AssetShield::descramble(job.rawData, job.rawDataSize);
+            auto memInput = std::make_unique<juce::MemoryInputStream>(decryptedBlock.getData(), decryptedBlock.getSize(), false);
             reader.reset(formatManager.createReaderFor(std::move(memInput)));
         }
 
         if (!reader)
+        {
+            decryptedBlock.fillWith(0);
             return;
+        }
 
         // Read up to 2048 samples (minimum-phase mic FIR filter)
         const int samplesToRead = static_cast<int>(std::min<juce::int64>(reader->lengthInSamples, 2048));
         if (samplesToRead <= 0)
+        {
+            decryptedBlock.fillWith(0);
             return;
+        }
 
         juce::AudioBuffer<float> tempBuffer(static_cast<int>(reader->numChannels), samplesToRead);
         reader->read(&tempBuffer, 0, samplesToRead, 0, true, true);
+        reader.reset();
+        decryptedBlock.fillWith(0);
 
         // Strip leading dead air to sample 0 to guarantee perfect alignment
         int firstNonZeroSample = 0;

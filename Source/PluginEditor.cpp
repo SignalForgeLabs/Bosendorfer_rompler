@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "AssetShield.h"
 #include "BinaryData.h"
 
 #ifndef ASSETS_DIR_PATH
@@ -13,37 +14,26 @@ MicOverlayLayer::MicOverlayLayer()
 {
     setInterceptsMouseClicks(false, true);
 
-    const juce::File assetsDir(ASSETS_DIR_PATH);
-
-    auto loadPngWithFallback = [&](const char* fileName, const void* binData, int binSize) -> juce::Image
+    auto loadShieldedPng = [](const void* binData, int binSize) -> juce::Image
     {
-        const juce::File f = assetsDir.getChildFile(fileName);
-        if (f.existsAsFile())
-        {
-            auto img = juce::ImageFileFormat::loadFrom(f);
-            if (img.isValid())
-                return img;
-        }
-        if (binData != nullptr && binSize > 0)
-            return juce::ImageCache::getFromMemory(binData, binSize);
-        return {};
+        return AssetShield::loadImage(binData, static_cast<size_t>(binSize));
     };
 
-    // 0: Neumann KM 184 (Left: Neumann_KM184_L.png, Right: Neuman_KM184_R.png)
-    cachedLeftMicImages[0]  = loadPngWithFallback("Neumann_KM184_L.png", BinaryData::Neumann_KM184_L_png, BinaryData::Neumann_KM184_L_pngSize);
-    cachedRightMicImages[0] = loadPngWithFallback("Neuman_KM184_R.png",  BinaryData::Neuman_KM184_R_png,  BinaryData::Neuman_KM184_R_pngSize);
+    // 0: Neumann KM 184 (Left: Neumann_KM184_L.bin, Right: Neuman_KM184_R.bin)
+    cachedLeftMicImages[0]  = loadShieldedPng(BinaryData::Neumann_KM184_L_bin, BinaryData::Neumann_KM184_L_binSize);
+    cachedRightMicImages[0] = loadShieldedPng(BinaryData::Neuman_KM184_R_bin,  BinaryData::Neuman_KM184_R_binSize);
 
-    // 1: Neuman TLM 103 (Left: Neuman_TLM_L.png, Right: Neuman_TLM_R.png)
-    cachedLeftMicImages[1]  = loadPngWithFallback("Neuman_TLM_L.png",    BinaryData::Neuman_TLM_L_png,    BinaryData::Neuman_TLM_L_pngSize);
-    cachedRightMicImages[1] = loadPngWithFallback("Neuman_TLM_R.png",    BinaryData::Neuman_TLM_R_png,    BinaryData::Neuman_TLM_R_pngSize);
+    // 1: Neuman TLM 103 (Left: Neuman_TLM_L.bin, Right: Neuman_TLM_R.bin)
+    cachedLeftMicImages[1]  = loadShieldedPng(BinaryData::Neuman_TLM_L_bin,    BinaryData::Neuman_TLM_L_binSize);
+    cachedRightMicImages[1] = loadShieldedPng(BinaryData::Neuman_TLM_R_bin,    BinaryData::Neuman_TLM_R_binSize);
 
-    // 2: Neumann U87 (Left: Neuman_U87-L.png, Right: Neuman_U87-R.png)
-    cachedLeftMicImages[2]  = loadPngWithFallback("Neuman_U87-L.png",    BinaryData::Neuman_U87L_png,     BinaryData::Neuman_U87L_pngSize);
-    cachedRightMicImages[2] = loadPngWithFallback("Neuman_U87-R.png",    BinaryData::Neuman_U87R_png,     BinaryData::Neuman_U87R_pngSize);
+    // 2: Neumann U87 (Left: Neuman_U87-L.bin, Right: Neuman_U87-R.bin)
+    cachedLeftMicImages[2]  = loadShieldedPng(BinaryData::Neuman_U87L_bin,     BinaryData::Neuman_U87L_binSize);
+    cachedRightMicImages[2] = loadShieldedPng(BinaryData::Neuman_U87R_bin,     BinaryData::Neuman_U87R_binSize);
 
-    // 3: RCA 44BX NEVE 1073 (Left: RCA_Ribbon_L.png, Right: RCA_Ribbon_R.png)
-    cachedLeftMicImages[3]  = loadPngWithFallback("RCA_Ribbon_L.png",    BinaryData::RCA_Ribbon_L_png,    BinaryData::RCA_Ribbon_L_pngSize);
-    cachedRightMicImages[3] = loadPngWithFallback("RCA_Ribbon_R.png",    BinaryData::RCA_Ribbon_R_png,    BinaryData::RCA_Ribbon_R_pngSize);
+    // 3: RCA 44BX NEVE 1073 (Left: RCA_Ribbon_L.bin, Right: RCA_Ribbon_R.bin)
+    cachedLeftMicImages[3]  = loadShieldedPng(BinaryData::RCA_Ribbon_L_bin,    BinaryData::RCA_Ribbon_L_binSize);
+    cachedRightMicImages[3] = loadShieldedPng(BinaryData::RCA_Ribbon_R_bin,    BinaryData::RCA_Ribbon_R_binSize);
 
     addAndMakeVisible(bassMicOverlay);
     addAndMakeVisible(trebleMicOverlay);
@@ -239,9 +229,9 @@ BosendorferAudioProcessorEditor::BosendorferAudioProcessorEditor(BosendorferAudi
 {
     setLookAndFeel(&lookAndFeel);
 
-    // --- Layer 1: Cache Background Plates from BinaryData ---
-    stageGrandBg = juce::ImageCache::getFromMemory(BinaryData::stage_grand_png, BinaryData::stage_grand_pngSize);
-    pianoHarpBg  = juce::ImageCache::getFromMemory(BinaryData::piano_harp_png, BinaryData::piano_harp_pngSize);
+    // --- Layer 1: Descrambled Background Plates from Shielded BinaryData ---
+    stageGrandBg = AssetShield::loadImage(BinaryData::stage_grand_bin, static_cast<size_t>(BinaryData::stage_grand_binSize));
+    pianoHarpBg  = AssetShield::loadImage(BinaryData::piano_harp_bin, static_cast<size_t>(BinaryData::piano_harp_binSize));
 
     // --- Layer 2: Add Split Left/Right Floating Microphone Overlay Layer ---
     addChildComponent(micOverlayLayer);

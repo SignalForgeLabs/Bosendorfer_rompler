@@ -3,6 +3,7 @@
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_core/juce_core.h>
 #include "tsf.h"
+#include "AssetShield.h"
 #include <vector>
 #include <atomic>
 #include <algorithm>
@@ -19,7 +20,9 @@ public:
 
     bool loadFromMemory(const void* data, int sizeBytes, const juce::String& sourceLabel = "Embedded Bosendorfer Imperial")
     {
-        tsf* newFont = tsf_load_memory(data, sizeBytes);
+        tsf* newFont = AssetShield::loadSoundFont(data, sizeBytes);
+        if (!newFont)
+            newFont = tsf_load_memory(data, sizeBytes);
         if (!newFont)
             return false;
 

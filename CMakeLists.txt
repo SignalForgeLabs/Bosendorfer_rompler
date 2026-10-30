@@ -20,31 +20,31 @@ else()
     FetchContent_MakeAvailable(JUCE)
 endif()
 
-# 2. Declare Binary Assets (Embedded Fallback + BinaryData)
+# 2. Asset Obfuscation Pre-Build Hook & BinaryData Generation
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+set(RAW_ASSET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+set(SHIELDED_ASSET_DIR "${CMAKE_CURRENT_BINARY_DIR}/shielded_assets")
+
+file(MAKE_DIRECTORY "${SHIELDED_ASSET_DIR}")
+
+execute_process(
+    COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/pack_assets.py"
+            "${RAW_ASSET_DIR}"
+            "${SHIELDED_ASSET_DIR}"
+    RESULT_VARIABLE PACK_STATUS
+)
+
+if (NOT PACK_STATUS EQUAL 0)
+    message(FATAL_ERROR "Asset obfuscation failed.")
+endif()
+
+file(GLOB SHIELDED_ASSETS "${SHIELDED_ASSET_DIR}/*.bin")
+
 juce_add_binary_data(PluginAssets
     SOURCES
-        assets/stage_grand.png
-        assets/piano_harp.png
-        assets/Prototype_look_and_feel.png
-        # 4 Selectable Microphones (Left & Right Floating Graphics + WAV IRs)
-        assets/Neumann_KM184_L.png
-        assets/Neuman_KM184_R.png
-        assets/Mic_Neumann_KM184.wav
-        assets/Neuman_TLM_L.png
-        assets/Neuman_TLM_R.png
-        assets/Mic_Neumann_TLM103.wav
-        assets/Neuman_U87-L.png
-        assets/Neuman_U87-R.png
-        assets/Mic_Neumann_U87.wav
-        assets/RCA_Ribbon_L.png
-        assets/RCA_Ribbon_R.png
-        "assets/RCA 44BX NEVE.wav"
-        # SoundFont Banks & Room IRs
-        assets/BOSENDRF.SF2
-        assets/BOSENBRI.SF2
-        assets/IRs/Room_ViennaKonzerthaus.wav
-        assets/IRs/Room_MapleStage40ft.wav
-        assets/IRs/Room_ScoringStudioHall.wav
+        ${SHIELDED_ASSETS}
 )
 
 # 3. Create the Plugin Target
@@ -91,6 +91,7 @@ target_sources(BosendorferImperial
         src/DamperClunkModel.h
         src/LicenseManager.h
         src/CenterMonitorView.h
+        src/AssetShield.h
         libs/tsf.h
 )
 

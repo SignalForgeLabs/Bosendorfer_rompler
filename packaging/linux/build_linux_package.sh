@@ -61,6 +61,7 @@ chmod -R 755 "$DEST_VST3/Bosendorfer Imperial 290.vst3"
 DEST_BIN="$HOME/.local/bin"
 mkdir -p "$DEST_BIN"
 echo "[2/3] Installing standalone executable to $DEST_BIN/bosendorfer-imperial-290 ..."
+rm -f "$DEST_BIN/bosendorfer-imperial-290"
 cp "$SCRIPT_DIR/Bosendorfer Imperial 290" "$DEST_BIN/bosendorfer-imperial-290"
 chmod 755 "$DEST_BIN/bosendorfer-imperial-290"
 

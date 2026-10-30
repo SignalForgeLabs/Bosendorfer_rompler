@@ -3,6 +3,7 @@
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_dsp/juce_dsp.h>
 #include "DamperClunkModel.h"
+#include "AssetShield.h"
 #include <atomic>
 #include <cmath>
 
@@ -124,12 +125,13 @@ public:
 
     void loadRoomImpulse(const void* data, size_t size)
     {
-        roomConv.loadImpulseResponse(
-            data, size,
+        AssetShield::loadImpulseResponse(
+            roomConv,
+            data,
+            size,
             juce::dsp::Convolution::Stereo::yes,
             juce::dsp::Convolution::Trim::yes,
-            0,
-            juce::dsp::Convolution::Normalise::yes);
+            0);
     }
 
     // Process split Bass (Mic A) and Treble (Mic B) buffers, or bypass directly
