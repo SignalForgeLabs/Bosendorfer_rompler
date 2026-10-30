@@ -50,7 +50,7 @@ public:
         return font;
     }
 
-    // Direct JUCE Convolution Loader from scrambled BinaryData
+    // Direct JUCE Convolution Loader from scrambled BinaryData (moves AudioBuffer ownership safely)
     static void loadImpulseResponse(juce::dsp::Convolution& convolution,
                                     const void* rawData,
                                     size_t dataSize,
@@ -63,14 +63,30 @@ public:
 
         juce::MemoryBlock decrypted = descramble(rawData, dataSize);
 
-        convolution.loadImpulseResponse(
-            decrypted.getData(),
-            decrypted.getSize(),
-            isStereo,
-            trim,
-            sizeToUse,
-            juce::dsp::Convolution::Normalise::yes
-        );
+        auto stream = std::make_unique<juce::MemoryInputStream>(decrypted.getData(), decrypted.getSize(), false);
+        juce::WavAudioFormat wavFormat;
+        std::unique_ptr<juce::AudioFormatReader> reader(wavFormat.createReaderFor(stream.release(), true));
+
+        if (reader != nullptr && reader->lengthInSamples > 0)
+        {
+            int numSamples = static_cast<int>(reader->lengthInSamples);
+            if (sizeToUse > 0 && static_cast<int>(sizeToUse) < numSamples)
+                numSamples = static_cast<int>(sizeToUse);
+
+            const int numCh = juce::jmax(1, static_cast<int>(reader->numChannels));
+            juce::AudioBuffer<float> irBuffer(numCh, numSamples);
+            reader->read(&irBuffer, 0, numSamples, 0, true, true);
+            const double sr = reader->sampleRate > 0.0 ? reader->sampleRate : 44100.0;
+            reader.reset();
+
+            convolution.loadImpulseResponse(
+                std::move(irBuffer),
+                sr,
+                isStereo,
+                trim,
+                juce::dsp::Convolution::Normalise::yes
+            );
+        }
 
         decrypted.fillWith(0);
     }
@@ -87,4 +103,3 @@ public:
         return img;
     }
 };
-

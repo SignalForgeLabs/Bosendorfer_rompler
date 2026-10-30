@@ -103,23 +103,23 @@ public:
 
     // Load 1024-tap zero-latency FIR WAV from embedded binary memory (or file)
     // juce::dsp::Convolution loads asynchronously on its internal background thread
-    void loadBassMicImpulse(const void* data, size_t size)
+    void loadBassMicImpulse(juce::AudioBuffer<float>&& irBuffer, double irSampleRate)
     {
         bassMicConv.loadImpulseResponse(
-            data, size,
+            std::move(irBuffer),
+            irSampleRate,
             juce::dsp::Convolution::Stereo::yes,
             juce::dsp::Convolution::Trim::no,
-            1024,
             juce::dsp::Convolution::Normalise::yes);
     }
 
-    void loadTrebleMicImpulse(const void* data, size_t size)
+    void loadTrebleMicImpulse(juce::AudioBuffer<float>&& irBuffer, double irSampleRate)
     {
         trebleMicConv.loadImpulseResponse(
-            data, size,
+            std::move(irBuffer),
+            irSampleRate,
             juce::dsp::Convolution::Stereo::yes,
             juce::dsp::Convolution::Trim::no,
-            1024,
             juce::dsp::Convolution::Normalise::yes);
     }
 

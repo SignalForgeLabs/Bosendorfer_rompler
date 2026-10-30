@@ -132,7 +132,9 @@ private:
             return;
         }
 
-        juce::AudioBuffer<float> tempBuffer(static_cast<int>(reader->numChannels), samplesToRead);
+        const double irSampleRate = reader->sampleRate > 0.0 ? reader->sampleRate : 44100.0;
+        const int numCh = juce::jmax(1, static_cast<int>(reader->numChannels));
+        juce::AudioBuffer<float> tempBuffer(numCh, samplesToRead);
         reader->read(&tempBuffer, 0, samplesToRead, 0, true, true);
         reader.reset();
         decryptedBlock.fillWith(0);
@@ -153,52 +155,20 @@ private:
             }
         }
 
-        const int trimmedLength = samplesToRead - firstNonZeroSample;
+        const int trimmedLength = juce::jmin(1024, samplesToRead - firstNonZeroSample);
         if (trimmedLength <= 0)
             return;
 
-        juce::MemoryBlock memBlock;
-        juce::WavAudioFormat wavFormat;
-        {
-            // AudioFormatWriter takes ownership of the OutputStream* and deletes it in ~AudioFormatWriter
-            auto* memStream = new juce::MemoryOutputStream(memBlock, false);
-            std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(
-                memStream,
-                reader->sampleRate,
-                static_cast<unsigned int>(tempBuffer.getNumChannels()),
-                24,
-                {},
-                0));
+        juce::AudioBuffer<float> trimmedBuffer(numCh, trimmedLength);
+        for (int ch = 0; ch < numCh; ++ch)
+            trimmedBuffer.copyFrom(ch, 0, tempBuffer, ch, firstNonZeroSample, trimmedLength);
 
-            if (writer != nullptr)
-            {
-                writer->writeFromAudioSampleBuffer(tempBuffer, firstNonZeroSample, trimmedLength);
-                writer->flush();
-            }
+        if (acoustic != nullptr)
+        {
+            if (job.slot == MicSlot::Bass)
+                acoustic->loadBassMicImpulse(std::move(trimmedBuffer), irSampleRate);
             else
-            {
-                delete memStream;
-            }
-        }
-
-        // Push trimmed WAV memory block into JUCE DSP convolution
-        if (memBlock.getSize() > 0)
-        {
-            if (dsp != nullptr)
-            {
-                if (job.slot == MicSlot::Bass)
-                    dsp->loadBassIR(memBlock.getData(), memBlock.getSize());
-                else
-                    dsp->loadTrebleIR(memBlock.getData(), memBlock.getSize());
-            }
-
-            if (acoustic != nullptr)
-            {
-                if (job.slot == MicSlot::Bass)
-                    acoustic->loadBassMicImpulse(memBlock.getData(), memBlock.getSize());
-                else
-                    acoustic->loadTrebleMicImpulse(memBlock.getData(), memBlock.getSize());
-            }
+                acoustic->loadTrebleMicImpulse(std::move(trimmedBuffer), irSampleRate);
         }
     }
 
