@@ -5,6 +5,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "PluginProcessor.h"
 #include "PianoHarpViewComponent.h"
+#include "CenterMonitorView.h"
 #include <array>
 
 //==============================================================================
@@ -460,7 +461,8 @@ private:
     juce::Slider keyNoiseSlider;
     juce::Slider pedalNoiseSlider;
 
-    // 3. Bottom Velocity Curve Box Interactive Drag Slider
+    // 3. Bottom Dual-Mode Monitor View (Touch Response Velocity Curve / Mic Bleed & Phase Goniometer)
+    CenterMonitorView monitorView;
     juce::Slider velCurveBoxSlider;
 
     // Center Viewport Top Overlay Controls (Left Mic, Bypass, Right Mic, Room IR)
@@ -517,6 +519,8 @@ private:
     ImperialKeyboardComponent keyboardComponent;
     float smoothedMeterL { 0.0f };
     float smoothedMeterR { 0.0f };
+    uint32_t lastSeenHitCounter { 0 };
+    int lastScopeReadIndex { 0 };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BosendorferAudioProcessorEditor)
 };

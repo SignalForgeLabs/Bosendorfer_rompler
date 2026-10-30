@@ -234,6 +234,7 @@ void MicOverlayLayer::paint(juce::Graphics& g)
 BosendorferAudioProcessorEditor::BosendorferAudioProcessorEditor(BosendorferAudioProcessor& p)
     : AudioProcessorEditor(&p),
       audioProcessor(p),
+      monitorView(p.apvts, IDs::velCurve.getParamID()),
       keyboardComponent(p.keyboardState, juce::MidiKeyboardComponent::horizontalKeyboard)
 {
     setLookAndFeel(&lookAndFeel);
@@ -291,6 +292,7 @@ BosendorferAudioProcessorEditor::BosendorferAudioProcessorEditor(BosendorferAudi
     {
         isMicSetupView = viewToggleBtn.getToggleState();
         viewToggleBtn.setButtonText(isMicSetupView ? "Stage View" : "FX / Mics");
+        monitorView.setMicViewMode(isMicSetupView);
         updateLayerState();
         repaint();
     };
@@ -327,6 +329,9 @@ BosendorferAudioProcessorEditor::BosendorferAudioProcessorEditor(BosendorferAudi
     lidPositionAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, IDs::lidPosition.getParamID(), lidPositionSlider);
     keyNoiseAttachment    = std::make_unique<SliderAttachment>(audioProcessor.apvts, IDs::keyNoise.getParamID(), keyNoiseSlider);
     pedalNoiseAttachment  = std::make_unique<SliderAttachment>(audioProcessor.apvts, IDs::pedalNoise.getParamID(), pedalNoiseSlider);
+
+    // Dual-mode display window (Touch Response Curve in Stage View, Stereo Mic Vector Scope in Mic View)
+    addAndMakeVisible(monitorView);
 
     // Interactive drag slider placed over the Velocity Curve display box (X=32..151, Y=374..418)
     velCurveBoxSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
@@ -484,6 +489,8 @@ void BosendorferAudioProcessorEditor::updateLayerState()
 
     micOverlayLayer.setVisible(isMicSetupView);
     roomIrSelector.setVisible(!isMicSetupView);
+    monitorView.setMicViewMode(isMicSetupView);
+    velCurveBoxSlider.setInterceptsMouseClicks(!isMicSetupView, false);
 
     const int bassIdx   = juce::jlimit(0, 3, bassMicSelector.getSelectedId() - 1);
     const int trebleIdx = juce::jlimit(0, 3, trebleMicSelector.getSelectedId() - 1);
@@ -540,18 +547,37 @@ void BosendorferAudioProcessorEditor::timerCallback()
     if (presetSelector.getSelectedId() != currentPreset + 1 && presetSelector.getNumItems() > currentPreset)
         presetSelector.setSelectedId(currentPreset + 1, juce::dontSendNotification);
 
+    const uint32_t currentHits = audioProcessor.getNoteHitCounter();
+    if (currentHits != lastSeenHitCounter)
+    {
+        lastSeenHitCounter = currentHits;
+        monitorView.setLastHitVelocity(audioProcessor.getLastNoteVelocity());
+    }
+
+    const int currentScopeWrite = audioProcessor.getScopeWriteIndex();
+    if (currentScopeWrite != lastScopeReadIndex)
+    {
+        const int available = juce::jmin(BosendorferAudioProcessor::kScopeBufferSize,
+                                         currentScopeWrite - lastScopeReadIndex);
+        const int startIdx = currentScopeWrite - available;
+        for (int i = 0; i < available; ++i)
+        {
+            const auto [l, r] = audioProcessor.getScopeSample(startIdx + i);
+            monitorView.pushStereoSample(l, r);
+        }
+        lastScopeReadIndex = currentScopeWrite;
+    }
+
     updateLayerState();
 
     const float scaleX = static_cast<float>(getWidth()) / 1000.0f;
     const float scaleY = static_cast<float>(getHeight()) / 580.0f;
 
-    // Repaint top header status & Left Panel Stereo Meter + Velocity Curve Box
+    // Repaint top header status & Left Panel Stereo Meter
     repaint(static_cast<int>(700.0f * scaleX), static_cast<int>(38.0f * scaleY),
             static_cast<int>(290.0f * scaleX), static_cast<int>(24.0f * scaleY));
     repaint(static_cast<int>(108.0f * scaleX), static_cast<int>(112.0f * scaleY),
             static_cast<int>(48.0f * scaleX),  static_cast<int>(128.0f * scaleY));
-    repaint(static_cast<int>(28.0f * scaleX),  static_cast<int>(370.0f * scaleY),
-            static_cast<int>(128.0f * scaleX), static_cast<int>(52.0f * scaleY));
 }
 
 void BosendorferAudioProcessorEditor::paint(juce::Graphics& g)
@@ -678,43 +704,6 @@ void BosendorferAudioProcessorEditor::paint(juce::Graphics& g)
                static_cast<int>(112.0f * scaleX), static_cast<int>(222.0f * scaleY),
                static_cast<int>(36.0f * scaleX), static_cast<int>(14.0f * scaleY),
                juce::Justification::centred);
-
-    //==========================================================================
-    // Left Panel Bottom Box: Velocity Curve Display (X=32..151, Y=374..418)
-    //==========================================================================
-    juce::Rectangle<float> curveBox(32.0f * scaleX, 374.0f * scaleY, 120.0f * scaleX, 44.0f * scaleY);
-    g.setColour(juce::Colour(0xff181716));
-    g.fillRoundedRectangle(curveBox, 2.5f);
-    g.setColour(juce::Colour(0xff4a4744));
-    g.drawRoundedRectangle(curveBox, 2.5f, 1.0f);
-
-    const float curveExp = static_cast<float>(velCurveBoxSlider.getValue());
-    const auto plotArea = curveBox.reduced(3.0f * scaleX, 3.0f * scaleY);
-
-    juce::Path fillPath;
-    juce::Path strokePath;
-    fillPath.startNewSubPath(plotArea.getX(), plotArea.getBottom());
-
-    for (int i = 0; i <= 28; ++i)
-    {
-        const float normX = static_cast<float>(i) / 28.0f;
-        const float normY = std::pow(normX, curveExp);
-        const float px = plotArea.getX() + normX * plotArea.getWidth();
-        const float py = plotArea.getBottom() - normY * plotArea.getHeight();
-        fillPath.lineTo(px, py);
-        if (i == 0)
-            strokePath.startNewSubPath(px, py);
-        else
-            strokePath.lineTo(px, py);
-    }
-    fillPath.lineTo(plotArea.getRight(), plotArea.getBottom());
-    fillPath.closeSubPath();
-
-    g.setColour(juce::Colour(0xff6b6862).withAlpha(0.45f));
-    g.fillPath(fillPath);
-
-    g.setColour(juce::Colour(0xffe8e4dc));
-    g.strokePath(strokePath, juce::PathStrokeType(1.6f));
 }
 
 void BosendorferAudioProcessorEditor::resized()
@@ -773,7 +762,8 @@ void BosendorferAudioProcessorEditor::resized()
     keyNoiseSlider.setBounds(scaledBounds(39, 314, 36, 36));
     pedalNoiseSlider.setBounds(scaledBounds(110, 314, 36, 36));
 
-    // 3. Bottom Velocity Curve Box Interactive Drag Overlay
+    // 3. Bottom Dual-Mode Monitor View & Interactive Velocity Drag Overlay
+    monitorView.setBounds(scaledBounds(32, 374, 120, 44));
     velCurveBoxSlider.setBounds(scaledBounds(32, 374, 120, 44));
 
     //==========================================================================

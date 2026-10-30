@@ -90,6 +90,7 @@ target_sources(BosendorferImperial
         src/PianoAcousticEngine.h
         src/DamperClunkModel.h
         src/LicenseManager.h
+        src/CenterMonitorView.h
         libs/tsf.h
 )
 

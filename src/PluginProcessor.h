@@ -9,6 +9,8 @@
 #include "LicenseManager.h"
 #include "MicAssetLoader.h"
 #include <atomic>
+#include <array>
+#include <utility>
 
 class BosendorferAudioProcessor : public juce::AudioProcessor
 {
@@ -69,6 +71,17 @@ public:
     float getOutputRmsLeft() const noexcept { return rmsLeft.load(std::memory_order_relaxed); }
     float getOutputRmsRight() const noexcept { return rmsRight.load(std::memory_order_relaxed); }
 
+    static constexpr int kScopeBufferSize = 128;
+    uint32_t getNoteHitCounter() const noexcept { return noteHitCounter.load(std::memory_order_relaxed); }
+    float getLastNoteVelocity() const noexcept { return lastNoteVelocity.load(std::memory_order_relaxed); }
+    int getScopeWriteIndex() const noexcept { return scopeWriteIndex.load(std::memory_order_relaxed); }
+    std::pair<float, float> getScopeSample(int index) const noexcept
+    {
+        const int idx = index & (kScopeBufferSize - 1);
+        return { scopeRingL[static_cast<size_t>(idx)].load(std::memory_order_relaxed),
+                 scopeRingR[static_cast<size_t>(idx)].load(std::memory_order_relaxed) };
+    }
+
     juce::AudioProcessorValueTreeState apvts;
     juce::MidiKeyboardState keyboardState;
 
@@ -108,6 +121,11 @@ private:
     std::atomic<bool> pendingSustainEvent { false };
     std::atomic<float> rmsLeft { 0.0f };
     std::atomic<float> rmsRight { 0.0f };
+    std::atomic<float> lastNoteVelocity { 0.0f };
+    std::atomic<uint32_t> noteHitCounter { 0 };
+    std::array<std::atomic<float>, kScopeBufferSize> scopeRingL {};
+    std::array<std::atomic<float>, kScopeBufferSize> scopeRingR {};
+    std::atomic<int> scopeWriteIndex { 0 };
     juce::String externalSf2Path;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BosendorferAudioProcessor)

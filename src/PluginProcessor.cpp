@@ -334,11 +334,15 @@ void BosendorferAudioProcessor::renderSoundFontBlock(juce::AudioBuffer<float>& b
         if (message.isNoteOn())
         {
             // Velocity curve strictly governs how key strike velocity maps to sample layer selection & volume
-            const float curvedVel = PianoAcousticEngine::applyVelocityCurve(message.getFloatVelocity(), velocityCurve);
+            const float rawVel = message.getFloatVelocity();
+            lastNoteVelocity.store(rawVel, std::memory_order_relaxed);
+            noteHitCounter.fetch_add(1, std::memory_order_relaxed);
+
+            const float curvedVel = PianoAcousticEngine::applyVelocityCurve(rawVel, velocityCurve);
             sfEngine.noteOn(channel0, message.getNoteNumber(), curvedVel);
 
             if (keyNoiseGain > 0.05f)
-                acousticEngine.triggerKeyNoiseSample(keyNoiseGain * message.getFloatVelocity());
+                acousticEngine.triggerKeyNoiseSample(keyNoiseGain * rawVel);
         }
         else if (message.isNoteOff())
         {
@@ -473,6 +477,17 @@ void BosendorferAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, j
     rmsLeft.store(buffer.getRMSLevel(0, 0, numSamples), std::memory_order_relaxed);
     rmsRight.store(buffer.getNumChannels() > 1 ? buffer.getRMSLevel(1, 0, numSamples) : rmsLeft.load(std::memory_order_relaxed),
                    std::memory_order_relaxed);
+
+    // Push post-convolution stereo samples into lock-free ring buffer for CenterMonitorView goniometer
+    const float* outL = buffer.getReadPointer(0);
+    const float* outR = buffer.getNumChannels() > 1 ? buffer.getReadPointer(1) : outL;
+    const int step = juce::jmax(1, numSamples / 32);
+    for (int i = 0; i < numSamples; i += step)
+    {
+        const int writeIdx = scopeWriteIndex.fetch_add(1, std::memory_order_relaxed) & (kScopeBufferSize - 1);
+        scopeRingL[static_cast<size_t>(writeIdx)].store(outL[i], std::memory_order_relaxed);
+        scopeRingR[static_cast<size_t>(writeIdx)].store(outR[i], std::memory_order_relaxed);
+    }
 }
 
 bool BosendorferAudioProcessor::hasEditor() const { return true; }
