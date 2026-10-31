@@ -513,3 +513,90 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new BosendorferAudioProcessor();
 }
+
+#if JUCE_LINUX
+// Provide local definitions for ALSA 1.2.10+ / 1.2.13+ UMP symbols so the linker
+// resolves JUCE 9's weak UMP declarations internally rather than binding to
+// ALSA_1.2.10 / ALSA_1.2.13 version nodes in the build container's libasound.so.2.
+// This ensures the binary launches on any Linux distro with ALSA >= 1.0 (MIDI 1.0 sequencer).
+extern "C"
+{
+    struct _snd_seq_port_info;
+    unsigned int snd_seq_port_info_get_capability(const _snd_seq_port_info*);
+
+    int snd_seq_client_info_get_midi_version(const void*) { return 0; }
+    int snd_seq_set_client_midi_version(void*, int) { return -38; }
+    int snd_seq_set_client_ump_conversion(void*, int) { return -38; }
+    int snd_seq_ump_event_input(void*, void**) { return -38; }
+    int snd_seq_ump_event_output_direct(void*, void*) { return -38; }
+    int snd_seq_port_info_get_ump_is_midi1(const void*) { return 1; }
+    int snd_seq_port_info_get_ump_group(const void*) { return 0; }
+    int snd_seq_create_ump_endpoint(void*, const void*, unsigned int) { return -38; }
+    int snd_seq_create_ump_block(void*, int, const void*) { return -38; }
+    int snd_seq_set_ump_block_info(void*, int, const void*) { return -38; }
+    int snd_seq_get_ump_block_info(void*, int, int, void*) { return -38; }
+    int snd_seq_get_ump_endpoint_info(void*, int, void*) { return -38; }
+
+    const char* snd_ump_endpoint_info_get_product_id(const void*) { return ""; }
+    const unsigned char* snd_ump_endpoint_info_get_sw_revision(const void*)
+    {
+        static const unsigned char rev[4] = { 0, 0, 0, 0 };
+        return rev;
+    }
+    unsigned int snd_ump_endpoint_info_get_family_id(const void*) { return 0; }
+    unsigned int snd_ump_endpoint_info_get_flags(const void*) { return 0; }
+    unsigned int snd_ump_endpoint_info_get_manufacturer_id(const void*) { return 0; }
+    unsigned int snd_ump_endpoint_info_get_model_id(const void*) { return 0; }
+    unsigned int snd_ump_endpoint_info_get_num_blocks(const void*) { return 0; }
+    unsigned int snd_ump_endpoint_info_get_protocol(const void*) { return 0; }
+    unsigned int snd_ump_endpoint_info_get_protocol_caps(const void*) { return 0; }
+    unsigned int snd_ump_endpoint_info_get_version(const void*) { return 0; }
+
+    void snd_ump_endpoint_info_set_product_id(void*, const char*) {}
+    void snd_ump_endpoint_info_set_sw_revision(void*, const unsigned char*) {}
+    void snd_ump_endpoint_info_set_family_id(void*, unsigned int) {}
+    void snd_ump_endpoint_info_set_flags(void*, unsigned int) {}
+    void snd_ump_endpoint_info_set_manufacturer_id(void*, unsigned int) {}
+    void snd_ump_endpoint_info_set_model_id(void*, unsigned int) {}
+    void snd_ump_endpoint_info_set_name(void*, const char*) {}
+    void snd_ump_endpoint_info_set_num_blocks(void*, unsigned int) {}
+    void snd_ump_endpoint_info_set_protocol(void*, unsigned int) {}
+    void snd_ump_endpoint_info_set_protocol_caps(void*, unsigned int) {}
+    void snd_ump_endpoint_info_set_version(void*, unsigned int) {}
+
+    const char* snd_ump_block_info_get_name(const void*) { return ""; }
+    unsigned int snd_ump_block_info_get_active(const void*) { return 0; }
+    unsigned int snd_ump_block_info_get_direction(const void*) { return 0; }
+    unsigned int snd_ump_block_info_get_first_group(const void*) { return 0; }
+    unsigned int snd_ump_block_info_get_flags(const void*) { return 0; }
+    unsigned int snd_ump_block_info_get_num_groups(const void*) { return 0; }
+    unsigned int snd_ump_block_info_get_sysex8_streams(const void*) { return 0; }
+    unsigned int snd_ump_block_info_get_ui_hint(const void*) { return 0; }
+
+    void snd_ump_block_info_set_name(void*, const char*) {}
+    void snd_ump_block_info_set_active(void*, unsigned int) {}
+    void snd_ump_block_info_set_direction(void*, unsigned int) {}
+    void snd_ump_block_info_set_first_group(void*, unsigned int) {}
+    void snd_ump_block_info_set_flags(void*, unsigned int) {}
+    void snd_ump_block_info_set_num_groups(void*, unsigned int) {}
+    void snd_ump_block_info_set_sysex8_streams(void*, unsigned int) {}
+    void snd_ump_block_info_set_ui_hint(void*, unsigned int) {}
+    void snd_ump_block_info_set_block_id(void*, unsigned int) {}
+
+    int snd_seq_port_info_get_direction(const _snd_seq_port_info* port)
+    {
+        if (port == nullptr)
+            return 0;
+        const unsigned int caps = snd_seq_port_info_get_capability(port);
+        const bool canRead  = (caps & (1u << 0)) != 0; // SND_SEQ_PORT_CAP_READ
+        const bool canWrite = (caps & (1u << 1)) != 0; // SND_SEQ_PORT_CAP_WRITE
+        if (canRead && canWrite) return 3;             // SND_SEQ_PORT_DIR_BIDIRECTION
+        if (canRead)             return 1;             // SND_SEQ_PORT_DIR_INPUT
+        if (canWrite)            return 2;             // SND_SEQ_PORT_DIR_OUTPUT
+        return 0;
+    }
+
+    size_t snd_ump_block_info_sizeof(void) { return 64; }
+    size_t snd_ump_endpoint_info_sizeof(void) { return 64; }
+}
+#endif

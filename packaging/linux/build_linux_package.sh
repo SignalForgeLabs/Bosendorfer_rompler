@@ -13,8 +13,8 @@ echo "=========================================================="
 echo " Packaging Linux Distribution v${VERSION}"
 echo "=========================================================="
 
-VST3_SRC=$(find "build/BosendorferImperial_artefacts" -name "Bosendorfer Imperial 290.vst3" -type d | head -n 1)
-STANDALONE_SRC=$(find "build/BosendorferImperial_artefacts" -name "Bosendorfer Imperial 290" -type f | head -n 1)
+VST3_SRC=$(find "build/BosendorferImperial_artefacts/Release" "build/BosendorferImperial_artefacts" -name "Bosendorfer Imperial 290.vst3" -type d 2>/dev/null | head -n 1)
+STANDALONE_SRC=$(find "build/BosendorferImperial_artefacts/Release" "build/BosendorferImperial_artefacts" -name "Bosendorfer Imperial 290" -type f 2>/dev/null | head -n 1)
 
 if [ -z "$VST3_SRC" ] || [ ! -d "$VST3_SRC" ]; then
     echo "ERROR: Bosendorfer Imperial 290.vst3 was not found in build/BosendorferImperial_artefacts!"
@@ -64,6 +64,25 @@ echo "[2/3] Installing standalone executable to $DEST_BIN/bosendorfer-imperial-2
 rm -f "$DEST_BIN/bosendorfer-imperial-290"
 cp "$SCRIPT_DIR/Bosendorfer Imperial 290" "$DEST_BIN/bosendorfer-imperial-290"
 chmod 755 "$DEST_BIN/bosendorfer-imperial-290"
+
+# Ensure default ALSA audio output configuration exists for Standalone
+SETTINGS_FILE="$HOME/.config/Bosendorfer Imperial 290.settings"
+mkdir -p "$HOME/.config"
+if [ ! -f "$SETTINGS_FILE" ] || grep -q 'name="audioSetup" val=""' "$SETTINGS_FILE" 2>/dev/null; then
+    cat > "$SETTINGS_FILE" << 'SETTINGS_EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+
+<PROPERTIES>
+  <VALUE name="windowX" val="460"/>
+  <VALUE name="windowY" val="180"/>
+  <VALUE name="audioSetup">
+    <DEVICESETUP deviceType="ALSA" audioOutputDeviceName="default" audioInputDeviceName=""
+                 audioDeviceRate="44100.0" audioDeviceBufferSize="512" audioDeviceOutChans="11"/>
+  </VALUE>
+  <VALUE name="shouldMuteInput" val="1"/>
+</PROPERTIES>
+SETTINGS_EOF
+fi
 
 # 3. Create desktop launcher shortcut
 DESKTOP_DIR="$HOME/Desktop"
