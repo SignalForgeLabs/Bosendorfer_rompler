@@ -590,20 +590,54 @@ void BosendorferAudioProcessorEditor::paint(juce::Graphics& g)
     }
 
     //==========================================================================
-    // Top Header Title & MIDI / Voice Indicators (Matching Prototype_look_and_feel.png)
+    // Top Header Title, Mason's Mark & MIDI / Voice Indicators
     //==========================================================================
     g.setColour(juce::Colour(0xffdcd8d0));
-    g.setFont(juce::FontOptions(22.0f * scaleY));
+    g.setFont(juce::FontOptions(22.0f * scaleY, juce::Font::bold));
     g.drawText("BOSENDORFER IMPERIAL 290",
-               static_cast<int>(18.0f * scaleX), static_cast<int>(10.0f * scaleY),
-               static_cast<int>(360.0f * scaleX), static_cast<int>(26.0f * scaleY),
+               static_cast<int>(18.0f * scaleX), static_cast<int>(8.0f * scaleY),
+               static_cast<int>(420.0f * scaleX), static_cast<int>(25.0f * scaleY),
+               juce::Justification::centredLeft);
+
+    // SignalForge Audio Labs Mason's Mark (geometric chisel/compass glyph in burnished gold)
+    {
+        const float mx = 20.0f * scaleX;
+        const float my = 35.5f * scaleY;
+        const float ms = 13.0f * scaleY;
+        const float cx = mx + ms * 0.5f;
+        const float cy = my + ms * 0.5f;
+
+        juce::Path masonsMark;
+        // Outer diamond / square-and-compass frame
+        masonsMark.startNewSubPath(cx, my);
+        masonsMark.lineTo(mx + ms, cy);
+        masonsMark.lineTo(cx, my + ms);
+        masonsMark.lineTo(mx, cy);
+        masonsMark.closeSubPath();
+
+        // Inner mason chisel vertical axis & SignalForge chevron crossbar
+        masonsMark.startNewSubPath(cx, my + ms * 0.18f);
+        masonsMark.lineTo(cx, my + ms * 0.82f);
+        masonsMark.startNewSubPath(mx + ms * 0.24f, cy - ms * 0.14f);
+        masonsMark.lineTo(cx, cy + ms * 0.16f);
+        masonsMark.lineTo(mx + ms * 0.76f, cy - ms * 0.14f);
+
+        g.setColour(juce::Colour(0xffd4af37));
+        g.strokePath(masonsMark, juce::PathStrokeType(1.35f * scaleY));
+    }
+
+    g.setColour(juce::Colour(0xffd4af37));
+    g.setFont(juce::FontOptions(11.5f * scaleY, juce::Font::bold));
+    g.drawText("by SignalForge Audio Labs",
+               static_cast<int>(38.0f * scaleX), static_cast<int>(33.0f * scaleY),
+               static_cast<int>(175.0f * scaleX), static_cast<int>(17.0f * scaleY),
                juce::Justification::centredLeft);
 
     g.setColour(juce::Colour(0xff9e9a92));
-    g.setFont(juce::FontOptions(10.5f * scaleY, juce::Font::bold));
-    g.drawText("97-KEY CONCERT GRAND  -  " + audioProcessor.getCurrentSoundFontName().toUpperCase(),
-               static_cast<int>(20.0f * scaleX), static_cast<int>(36.0f * scaleY),
-               static_cast<int>(360.0f * scaleX), static_cast<int>(16.0f * scaleY),
+    g.setFont(juce::FontOptions(10.0f * scaleY, juce::Font::bold));
+    g.drawText("|   97-KEY CONCERT GRAND  -  " + audioProcessor.getCurrentSoundFontName().toUpperCase(),
+               static_cast<int>(212.0f * scaleX), static_cast<int>(34.0f * scaleY),
+               static_cast<int>(420.0f * scaleX), static_cast<int>(16.0f * scaleY),
                juce::Justification::centredLeft);
 
     // Top-Right MIDI & Voices LED Indicator (Matching "MIDI [green]" in Prototype_look_and_feel.png)
