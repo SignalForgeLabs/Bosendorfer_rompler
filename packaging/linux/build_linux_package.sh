@@ -122,8 +122,108 @@ cd "$DIST_DIR"
 tar -czvf "Bosendorfer_Imperial_290_Linux_v${VERSION}.tar.gz" "Bosendorfer_Imperial_290_Linux_v${VERSION}"
 zip -r "Bosendorfer_Imperial_290_Linux_v${VERSION}.zip" "Bosendorfer_Imperial_290_Linux_v${VERSION}"
 
+# Build self-extracting installable binary (.run)
+RUN_INSTALLER="$DIST_DIR/Bosendorfer_Imperial_290_Linux_v${VERSION}_Installer.run"
+cat << 'RUN_HEADER_EOF' > "$RUN_INSTALLER"
+#!/usr/bin/env bash
+set -e
+echo "=========================================================="
+echo " Bosendorfer Imperial 290 v1.0.0 Self-Extracting Installer"
+echo " by SignalForge Audio Labs"
+echo "=========================================================="
+TMP_EXTRACT="$(mktemp -d /tmp/bosendorfer_installer.XXXXXX)"
+trap 'rm -rf "$TMP_EXTRACT"' EXIT
+ARCHIVE_LINE=$(awk '/^__ARCHIVE_BELOW__/ {print NR + 1; exit 0; }' "$0")
+tail -n +"$ARCHIVE_LINE" "$0" | tar -xz -C "$TMP_EXTRACT"
+bash "$TMP_EXTRACT/Bosendorfer_Imperial_290_Linux_v1.0.0/install.sh"
+exit 0
+__ARCHIVE_BELOW__
+RUN_HEADER_EOF
+cat "Bosendorfer_Imperial_290_Linux_v${VERSION}.tar.gz" >> "$RUN_INSTALLER"
+chmod +x "$RUN_INSTALLER"
+
+# Build Debian/Ubuntu/Mint installable package (.deb)
+DEB_STAGE="$DIST_DIR/deb_stage"
+rm -rf "$DEB_STAGE"
+mkdir -p "$DEB_STAGE/DEBIAN"
+mkdir -p "$DEB_STAGE/usr/bin"
+mkdir -p "$DEB_STAGE/usr/lib/vst3"
+mkdir -p "$DEB_STAGE/usr/share/applications"
+
+cp "$REPO_ROOT/$STANDALONE_SRC" "$DEB_STAGE/usr/bin/bosendorfer-imperial-290"
+chmod 755 "$DEB_STAGE/usr/bin/bosendorfer-imperial-290"
+cp -R "$REPO_ROOT/$VST3_SRC" "$DEB_STAGE/usr/lib/vst3/Bosendorfer Imperial 290.vst3"
+chmod -R 755 "$DEB_STAGE/usr/lib/vst3/Bosendorfer Imperial 290.vst3"
+
+cat << 'DEB_DESKTOP_EOF' > "$DEB_STAGE/usr/share/applications/bosendorfer-imperial-290.desktop"
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Bosendorfer Imperial 290
+Comment=Bosendorfer Imperial 290 by SignalForge Audio Labs
+Exec=/usr/bin/bosendorfer-imperial-290
+Icon=audio-card
+Terminal=false
+Categories=AudioVideo;Audio;Music;
+StartupNotify=true
+DEB_DESKTOP_EOF
+
+INSTALLED_KB=$(du -sk "$DEB_STAGE/usr" | cut -f1)
+cat << DEB_CONTROL_EOF > "$DEB_STAGE/DEBIAN/control"
+Package: bosendorfer-imperial-290
+Version: ${VERSION}
+Section: sound
+Priority: optional
+Architecture: amd64
+Installed-Size: ${INSTALLED_KB}
+Maintainer: SignalForge Audio Labs <support@sfalabs.digital>
+Description: Bosendorfer Imperial 290 Concert Grand by SignalForge Audio Labs
+ 97-Key Concert Grand Piano Rompler with dual-microphone convolution and room IRs.
+ Includes both the Standalone application and the VST3 plugin.
+DEB_CONTROL_EOF
+
+DEB_OUT="$DIST_DIR/bosendorfer-imperial-290_${VERSION}_amd64.deb"
+if command -v dpkg-deb >/dev/null 2>&1; then
+    dpkg-deb --root-owner-group --build "$DEB_STAGE" "$DEB_OUT"
+else
+    python3 - "$DEB_STAGE" "$DEB_OUT" << 'PY_DEB_EOF'
+import os, sys, tarfile, time
+
+stage_dir, deb_path = sys.argv[1], sys.argv[2]
+control_tar = os.path.join(stage_dir, "control.tar.gz")
+data_tar = os.path.join(stage_dir, "data.tar.gz")
+
+def reset_tarinfo(ti):
+    ti.uid = ti.gid = 0
+    ti.uname = ti.gname = "root"
+    return ti
+
+with tarfile.open(control_tar, "w:gz") as tf:
+    tf.add(os.path.join(stage_dir, "DEBIAN", "control"), arcname="./control", filter=reset_tarinfo)
+
+with tarfile.open(data_tar, "w:gz") as tf:
+    tf.add(os.path.join(stage_dir, "usr"), arcname="./usr", filter=reset_tarinfo)
+
+def ar_member(name, data):
+    hdr = f"{name:<16}{int(time.time()):<12}0     0     100644  {len(data):<10}`\n".encode("ascii")
+    pad = b"\n" if len(data) % 2 == 1 else b""
+    return hdr + data + pad
+
+with open(deb_path, "wb") as f:
+    f.write(b"!<arch>\n")
+    f.write(ar_member("debian-binary", b"2.0\n"))
+    with open(control_tar, "rb") as cf:
+        f.write(ar_member("control.tar.gz", cf.read()))
+    with open(data_tar, "rb") as df:
+        f.write(ar_member("data.tar.gz", df.read()))
+PY_DEB_EOF
+fi
+rm -rf "$DEB_STAGE"
+
 echo "=========================================================="
 echo " Linux packages created:"
+echo " - $RUN_INSTALLER"
+echo " - $DEB_OUT"
 echo " - $DIST_DIR/Bosendorfer_Imperial_290_Linux_v${VERSION}.tar.gz"
 echo " - $DIST_DIR/Bosendorfer_Imperial_290_Linux_v${VERSION}.zip"
 echo "=========================================================="
