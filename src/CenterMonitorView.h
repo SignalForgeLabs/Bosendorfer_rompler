@@ -148,35 +148,73 @@ private:
     {
         // Mode header label
         auto headerArea = bounds.removeFromTop(11.0f);
-        g.setColour(juce::Colour(0xfff0c43f).withAlpha(0.80f)); // Amber gold
+        g.setColour(juce::Colour(0xfff0c43f).withAlpha(0.85f)); // Amber gold
         g.setFont(juce::FontOptions(8.5f, juce::Font::bold));
-        g.drawText("MIC BLEED & PHASE", headerArea, juce::Justification::centred);
+        g.drawText("MIC IR & PHASE SCOPE", headerArea, juce::Justification::centred);
 
-        // 45-degree diagonal L/R reference axes
+        // Full-width reference grid axes
         g.setColour(juce::Colours::white.withAlpha(0.08f));
         g.drawLine(bounds.getX(), bounds.getY(), bounds.getRight(), bounds.getBottom(), 0.5f);
         g.drawLine(bounds.getX(), bounds.getBottom(), bounds.getRight(), bounds.getY(), 0.5f);
+        g.drawLine(bounds.getX(), bounds.getCentreY(), bounds.getRight(), bounds.getCentreY(), 0.5f);
         g.drawLine(bounds.getCentreX(), bounds.getY(), bounds.getCentreX(), bounds.getBottom(), 0.4f);
 
-        auto center = bounds.getCentre();
-        float maxRadius = juce::jmin(bounds.getWidth(), bounds.getHeight()) * 0.48f;
+        const auto center = bounds.getCentre();
+        const float radiusX = bounds.getWidth() * 0.48f;
+        const float radiusY = bounds.getHeight() * 0.46f;
 
-        // Trace the stereo samples (M/S rotated goniometer: X = (L-R)*0.707, Y = (L+R)*0.707)
+        // 1. Full-width post-IR stereo waveform / envelope trace across the entire display width
+        juce::Path wavePathL, wavePathR, fillPath;
+        const int readStart = writeIndex;
+        constexpr float kWaveGain = 3.2f;
+        fillPath.startNewSubPath(bounds.getX(), center.y);
+
+        for (int i = 0; i < kBufferSize; ++i)
+        {
+            const int idx = (readStart + i) % kBufferSize;
+            const auto [leftSample, rightSample] = sampleRingBuffer[idx];
+            const float normX = static_cast<float>(i) / static_cast<float>(kBufferSize - 1);
+            const float wx = bounds.getX() + normX * bounds.getWidth();
+            const float wyL = center.y - juce::jlimit(-1.0f, 1.0f, leftSample * kWaveGain) * radiusY;
+            const float wyR = center.y - juce::jlimit(-1.0f, 1.0f, rightSample * kWaveGain) * radiusY;
+
+            fillPath.lineTo(wx, wyL);
+            if (i == 0)
+            {
+                wavePathL.startNewSubPath(wx, wyL);
+                wavePathR.startNewSubPath(wx, wyR);
+            }
+            else
+            {
+                wavePathL.lineTo(wx, wyL);
+                wavePathR.lineTo(wx, wyR);
+            }
+        }
+        fillPath.lineTo(bounds.getRight(), center.y);
+        fillPath.closeSubPath();
+
+        g.setColour(juce::Colour(0xff4fa3e3).withAlpha(0.18f));
+        g.fillPath(fillPath);
+
+        g.setColour(juce::Colour(0xff4fa3e3).withAlpha(0.85f)); // Studio blue full-width IR trace
+        g.strokePath(wavePathL, juce::PathStrokeType(1.3f));
+
+        // 2. Wide M/S stereo phase vector scope spanning the full horizontal radiusX
         juce::Path vectorPath;
         bool pathStarted = false;
+        constexpr float kSideGain = 6.5f;
+        constexpr float kMidGain  = 3.5f;
 
-        const int readStart = writeIndex;
-        constexpr float kVisualGain = 3.5f;
         for (int i = 0; i < kBufferSize; i += 2)
         {
-            int idx = (readStart + i) % kBufferSize;
-            auto [leftSample, rightSample] = sampleRingBuffer[idx];
+            const int idx = (readStart + i) % kBufferSize;
+            const auto [leftSample, rightSample] = sampleRingBuffer[idx];
 
-            float side = (leftSample - rightSample) * 0.7071f * kVisualGain;
-            float mid  = (leftSample + rightSample) * 0.7071f * kVisualGain;
+            const float side = (leftSample - rightSample) * 0.7071f * kSideGain;
+            const float mid  = (leftSample + rightSample) * 0.7071f * kMidGain;
 
-            float px = center.x + juce::jlimit(-1.0f, 1.0f, side) * maxRadius;
-            float py = center.y - juce::jlimit(-1.0f, 1.0f, mid) * maxRadius;
+            const float px = center.x + juce::jlimit(-1.0f, 1.0f, side) * radiusX;
+            const float py = center.y - juce::jlimit(-1.0f, 1.0f, mid) * radiusY;
 
             if (!pathStarted)
             {
@@ -189,8 +227,8 @@ private:
             }
         }
 
-        // Draw phosphor-green scope trace
-        g.setColour(juce::Colour(0xff2be482).withAlpha(0.80f));
+        // Draw cyan-green stereo phase trace over the full-width blue IR wave
+        g.setColour(juce::Colour(0xff2be4c8).withAlpha(0.82f));
         g.strokePath(vectorPath, juce::PathStrokeType(1.2f));
     }
 

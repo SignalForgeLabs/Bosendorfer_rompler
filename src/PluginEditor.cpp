@@ -786,9 +786,9 @@ void BosendorferAudioProcessorEditor::resized()
     keyNoiseSlider.setBounds(scaledBounds(39, 314, 36, 36));
     pedalNoiseSlider.setBounds(scaledBounds(110, 314, 36, 36));
 
-    // 3. Bottom Dual-Mode Monitor View & Interactive Velocity Drag Overlay
-    monitorView.setBounds(scaledBounds(32, 374, 120, 44));
-    velCurveBoxSlider.setBounds(scaledBounds(32, 374, 120, 44));
+    // 3. Bottom Dual-Mode Monitor View & Interactive Velocity Drag Overlay (full left-sidebar width)
+    monitorView.setBounds(scaledBounds(18, 370, 144, 52));
+    velCurveBoxSlider.setBounds(scaledBounds(18, 370, 144, 52));
 
     //==========================================================================
     // Right Panel ("Mic & Effects"):
