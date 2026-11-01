@@ -5,10 +5,9 @@ namespace UILayout
 {
     namespace VenueSection
     {
-        // Right-hand acoustic strip bounds
-        const juce::Rectangle<int> labelBounds    { 820, 240, 160, 18 };
-        const juce::Rectangle<int> comboBounds    { 820, 260, 160, 28 };
-        const juce::Rectangle<int> mixKnobBounds  { 865, 295, 70, 70 };
+        // Original bottom-left Concert Stage viewport bounds for Venue / Room IR selector
+        const juce::Rectangle<int> labelBounds    { 184, 380, 196, 16 };
+        const juce::Rectangle<int> comboBounds    { 184, 398, 196, 24 };
+        const juce::Rectangle<int> mixKnobBounds  { 39,  254, 36,  36 };
     }
 }
-

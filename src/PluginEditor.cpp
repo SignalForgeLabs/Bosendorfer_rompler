@@ -310,39 +310,15 @@ BosendorferAudioProcessorEditor::BosendorferAudioProcessorEditor(BosendorferAudi
     lidFaderAttachment    = std::make_unique<SliderAttachment>(audioProcessor.apvts, IDs::lidPosition.getParamID(), lidFader);
 
     // 4 Rotary Knobs aligned to the 4 black circles on stage_grand.png ("Reverb", "Lid Open", "Key Noise", "Pedal Noise")
-    setupCircleKnob(leftReverbKnob,    "Reverb Mix");
-    setupCircleKnob(roomSlider,        "Venue Wet/Dry Mix");
+    setupCircleKnob(roomSlider,        "Reverb Mix");
     setupCircleKnob(lidPositionSlider, "Lid Open Position");
     setupCircleKnob(keyNoiseSlider,    "Keybed Action Noise");
     setupCircleKnob(pedalNoiseSlider,  "Damper Pedal Noise (Lift Whoosh & Fast-Release Mechanical Thump)");
 
-    leftReverbAttachment  = std::make_unique<SliderAttachment>(audioProcessor.apvts, IDs::roomMix.getParamID(), leftReverbKnob);
     roomAttachment        = std::make_unique<SliderAttachment>(audioProcessor.apvts, IDs::roomMix.getParamID(), roomSlider);
     lidPositionAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, IDs::lidPosition.getParamID(), lidPositionSlider);
     keyNoiseAttachment    = std::make_unique<SliderAttachment>(audioProcessor.apvts, IDs::keyNoise.getParamID(), keyNoiseSlider);
     pedalNoiseAttachment  = std::make_unique<SliderAttachment>(audioProcessor.apvts, IDs::pedalNoise.getParamID(), pedalNoiseSlider);
-
-    // --- VENUE SECTION SETUP ---
-    venueLabel.setText("VENUE", juce::dontSendNotification);
-    venueLabel.setFont(juce::FontOptions(11.0f).withStyle("Bold"));
-    venueLabel.setColour(juce::Label::textColourId, juce::Colour(0xffc5a059)); // Aged gold lettering
-    venueLabel.setJustificationType(juce::Justification::centred);
-    addAndMakeVisible(venueLabel);
-
-    venueSelector.addItem("Dry",                 1);
-    venueSelector.addItem("Vienna Konzerthaus",  2);
-    venueSelector.addItem("Maple Stage 40ft",    3);
-    venueSelector.addItem("Naumburg Band Shell", 4);
-    venueSelector.addItem("Scoring Studio Hall", 5);
-    venueSelector.addItem("Art Gallery",         6);
-    venueSelector.setColour(juce::ComboBox::backgroundColourId, juce::Colour(0xcc141618));
-    venueSelector.setColour(juce::ComboBox::outlineColourId, juce::Colour(0x44ffffff));
-    venueSelector.setColour(juce::ComboBox::textColourId, juce::Colours::white);
-    venueSelector.setJustificationType(juce::Justification::centredLeft);
-    addAndMakeVisible(venueSelector);
-
-    venueAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
-        audioProcessor.apvts, IDs::roomIrType.getParamID(), venueSelector);
 
     // Dual-mode display window (Touch Response Curve in Stage View, Stereo Mic Vector Scope in Mic View)
     addAndMakeVisible(monitorView);
@@ -502,9 +478,7 @@ void BosendorferAudioProcessorEditor::updateLayerState()
     splitWidthSlider.setAlpha(activeAlpha);
 
     micOverlayLayer.setVisible(isMicSetupView);
-    roomIrSelector.setVisible(false);
-    splitCenterSlider.setVisible(false);
-    splitWidthSlider.setVisible(false);
+    roomIrSelector.setVisible(!isMicSetupView);
     monitorView.setMicViewMode(isMicSetupView);
     velCurveBoxSlider.setInterceptsMouseClicks(!isMicSetupView, false);
 
@@ -701,13 +675,6 @@ void BosendorferAudioProcessorEditor::paint(juce::Graphics& g)
     g.setGradientFill(rightPanelGrad);
     g.fillRoundedRectangle(rightUpperBox, 3.0f);
 
-    // Recessed brushed-metal backing for Venue Section on Right Panel so old printed labels don't bleed through
-    juce::Rectangle<float> rightVenuePlate(840.0f * scaleX, 240.0f * scaleY, 136.0f * scaleX, 132.0f * scaleY);
-    juce::ColourGradient venuePlateGrad(juce::Colour(0xff383430), rightVenuePlate.getX(), rightVenuePlate.getY(),
-                                        juce::Colour(0xff24211e), rightVenuePlate.getRight(), rightVenuePlate.getBottom(), false);
-    g.setGradientFill(venuePlateGrad);
-    g.fillRoundedRectangle(rightVenuePlate, 3.0f);
-
     // Draw Tri-Color Segmented Vertical Stereo Meter at X = 118..142, Y = 122..218
     const float targetL = std::pow(juce::jlimit(0.0f, 1.0f, audioProcessor.getOutputRmsLeft() * 5.5f), 0.50f);
     const float targetR = std::pow(juce::jlimit(0.0f, 1.0f, audioProcessor.getOutputRmsRight() * 5.5f), 0.50f);
@@ -814,7 +781,7 @@ void BosendorferAudioProcessorEditor::resized()
     lidFaderBotLabel.setBounds(scaledBounds(62, 222, 50, 14));
 
     // 2. 4 Circular Cutout Rotary Knobs on Left Panel
-    leftReverbKnob.setBounds(scaledBounds(39, 254, 36, 36));
+    roomSlider.setBounds(scaledBounds(39, 254, 36, 36));
     lidPositionSlider.setBounds(scaledBounds(110, 254, 36, 36));
     keyNoiseSlider.setBounds(scaledBounds(39, 314, 36, 36));
     pedalNoiseSlider.setBounds(scaledBounds(110, 314, 36, 36));
@@ -839,14 +806,9 @@ void BosendorferAudioProcessorEditor::resized()
     trebleMicGainSlider.setBounds(scaledBounds(935, 128, 32, 92));
     trebleFaderBotLabel.setBounds(scaledBounds(930, 222, 42, 13));
 
-    // 2. Venue Section (UILayout::VenueSection) & Master Gain Knob on Right Panel
-    auto scaleRect = [&scaledBounds](const juce::Rectangle<int>& r)
-    {
-        return scaledBounds(r.getX(), r.getY(), r.getWidth(), r.getHeight());
-    };
-    venueLabel.setBounds(scaleRect(UILayout::VenueSection::labelBounds));
-    venueSelector.setBounds(scaleRect(UILayout::VenueSection::comboBounds));
-    roomSlider.setBounds(scaleRect(UILayout::VenueSection::mixKnobBounds)); // "Wet/Dry" mix control below it
+    // 2. 3 Circular Cutout Rotary Knobs on Right Panel
+    splitCenterSlider.setBounds(scaledBounds(889, 256, 36, 36));
+    splitWidthSlider.setBounds(scaledBounds(889, 318, 36, 36));
     masterGainSlider.setBounds(scaledBounds(889, 378, 36, 36));
 
     //==========================================================================
