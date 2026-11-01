@@ -125,6 +125,37 @@ public:
 
     void loadRoomImpulse(const void* data, size_t size)
     {
+        if (data == nullptr || size < 12)
+            return;
+
+        const auto* bytes = static_cast<const uint8_t*>(data);
+        const bool isPlainWav = (bytes[0] == 'R' && bytes[1] == 'I' && bytes[2] == 'F' && bytes[3] == 'F');
+
+        if (isPlainWav)
+        {
+            juce::WavAudioFormat wavFormat;
+            auto memStream = std::make_unique<juce::MemoryInputStream>(data, size, false);
+            std::unique_ptr<juce::AudioFormatReader> reader(wavFormat.createReaderFor(memStream.release(), true));
+            if (reader != nullptr && reader->lengthInSamples > 0)
+            {
+                const int numCh = juce::jlimit(1, 2, static_cast<int>(reader->numChannels));
+                const int numSamples = static_cast<int>(reader->lengthInSamples);
+                const double irRate = reader->sampleRate;
+
+                juce::AudioBuffer<float> irBuffer(numCh, numSamples);
+                reader->read(&irBuffer, 0, numSamples, 0, true, numCh > 1);
+                reader.reset();
+
+                roomConv.loadImpulseResponse(
+                    std::move(irBuffer),
+                    irRate,
+                    juce::dsp::Convolution::Stereo::yes,
+                    juce::dsp::Convolution::Trim::yes,
+                    juce::dsp::Convolution::Normalise::yes);
+            }
+            return;
+        }
+
         AssetShield::loadImpulseResponse(
             roomConv,
             data,

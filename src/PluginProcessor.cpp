@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "IRShieldLoader.h"
 #include "BinaryData.h"
 
 namespace
@@ -25,26 +26,6 @@ namespace
                 data = BinaryData::RCA_44BX_NEVE_bin;
                 size = static_cast<size_t>(BinaryData::RCA_44BX_NEVE_binSize);
                 return;
-        }
-    }
-
-    void getRoomImpulseResource(int index, const void*& data, size_t& size)
-    {
-        switch (index)
-        {
-            case 0:
-                data = BinaryData::Room_ViennaKonzerthaus_bin;
-                size = static_cast<size_t>(BinaryData::Room_ViennaKonzerthaus_binSize);
-                break;
-            case 1:
-                data = BinaryData::Room_MapleStage40ft_bin;
-                size = static_cast<size_t>(BinaryData::Room_MapleStage40ft_binSize);
-                break;
-            case 2:
-            default:
-                data = BinaryData::Room_ScoringStudioHall_bin;
-                size = static_cast<size_t>(BinaryData::Room_ScoringStudioHall_binSize);
-                break;
         }
     }
 }
@@ -245,10 +226,37 @@ void BosendorferAudioProcessor::updateImpulses(bool forceReload)
     if (forceReload || currentRoom != activeRoomIndex)
     {
         activeRoomIndex = currentRoom;
-        const void* data = nullptr;
-        size_t size = 0;
-        getRoomImpulseResource(activeRoomIndex, data, size);
-        acousticEngine.loadRoomImpulse(data, size);
+
+        const void* rawData = nullptr;
+        size_t rawSize = 0;
+
+        switch (activeRoomIndex)
+        {
+            case 0: // Vienna Konzerthaus (~2.1s RT60)
+                rawData = BinaryData::vienna_konzerthaus_enc_wav;
+                rawSize = BinaryData::vienna_konzerthaus_enc_wavSize;
+                break;
+
+            case 1: // Maple Stage 40ft (~1.3s RT60)
+                rawData = BinaryData::maple_stage_40ft_enc_wav;
+                rawSize = BinaryData::maple_stage_40ft_enc_wavSize;
+                break;
+
+            case 2: // Scoring Studio Hall (~0.9s RT60)
+                rawData = BinaryData::scoring_studio_hall_enc_wav;
+                rawSize = BinaryData::scoring_studio_hall_enc_wavSize;
+                break;
+
+            default:
+                break;
+        }
+
+        if (rawData != nullptr && rawSize > 0)
+        {
+            // Decrypt in RAM without writing unencrypted WAV files to disk
+            auto decryptedBlock = IRShieldLoader::decryptIR(rawData, rawSize);
+            acousticEngine.loadRoomImpulse(decryptedBlock.getData(), decryptedBlock.getSize());
+        }
     }
 }
 

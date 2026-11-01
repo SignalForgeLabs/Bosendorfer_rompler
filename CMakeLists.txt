@@ -92,6 +92,8 @@ target_sources(BosendorferImperial
         src/LicenseManager.h
         src/CenterMonitorView.h
         src/AssetShield.h
+        src/IRShieldLoader.h
+        src/UIConfig.h
         libs/tsf.h
 )
 
@@ -116,6 +118,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
             JUCE_ALSA=1
             JUCE_JACK=1
     )
+    target_compile_options(BosendorferImperial PUBLIC -ffunction-sections -fdata-sections)
+    target_link_options(BosendorferImperial PUBLIC "-Wl,--gc-sections")
 endif()
 
 # 5. Link JUCE Modules & Assets

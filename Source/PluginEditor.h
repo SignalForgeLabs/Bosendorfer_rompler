@@ -6,6 +6,7 @@
 #include "PluginProcessor.h"
 #include "PianoHarpViewComponent.h"
 #include "CenterMonitorView.h"
+#include "UIConfig.h"
 #include <array>
 
 //==============================================================================
@@ -456,6 +457,7 @@ private:
     juce::Label lidFaderBotLabel;
 
     // 2. 4 Circular Cutout Rotary Knobs (above printed "Reverb", "Lid Open", "Key Noise", "Pedal Noise")
+    juce::Slider leftReverbKnob;
     juce::Slider roomSlider;
     juce::Slider lidPositionSlider;
     juce::Slider keyNoiseSlider;
@@ -464,6 +466,11 @@ private:
     // 3. Bottom Dual-Mode Monitor View (Touch Response Velocity Curve / Mic Bleed & Phase Goniometer)
     CenterMonitorView monitorView;
     juce::Slider velCurveBoxSlider;
+
+    // Venue Section (Right-hand acoustic strip)
+    juce::Label venueLabel;
+    juce::ComboBox venueSelector;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> venueAttachment;
 
     // Center Viewport Top Overlay Controls (Left Mic, Bypass, Right Mic, Room IR)
     juce::ComboBox roomIrSelector;
@@ -485,7 +492,7 @@ private:
     juce::Label trebleFaderTopLabel;
     juce::Label trebleFaderBotLabel;
 
-    // 2. 3 Circular Cutout Rotary Knobs (above printed "EQ", "Dynamic Range", "Saturation")
+    // 2. Crossover & Master Output Controls
     juce::Slider splitCenterSlider;
     juce::Slider splitWidthSlider;
     juce::Slider masterGainSlider;
@@ -502,6 +509,7 @@ private:
 
     std::unique_ptr<SliderAttachment> reverbFaderAttachment;
     std::unique_ptr<SliderAttachment> lidFaderAttachment;
+    std::unique_ptr<SliderAttachment> leftReverbAttachment;
     std::unique_ptr<SliderAttachment> roomAttachment;
     std::unique_ptr<SliderAttachment> lidPositionAttachment;
     std::unique_ptr<SliderAttachment> keyNoiseAttachment;
