@@ -106,26 +106,51 @@ public:
         }
     }
 
+    static void normaliseBufferEnergy(juce::AudioBuffer<float>& buf, float targetGain) noexcept
+    {
+        const int numCh = buf.getNumChannels();
+        const int numSamples = buf.getNumSamples();
+        float maxSumSq = 0.0f;
+
+        for (int ch = 0; ch < numCh; ++ch)
+        {
+            const float* ptr = buf.getReadPointer(ch);
+            float sumSq = 0.0f;
+            for (int i = 0; i < numSamples; ++i)
+                sumSq += ptr[i] * ptr[i];
+            if (sumSq > maxSumSq)
+                maxSumSq = sumSq;
+        }
+
+        if (maxSumSq > 1.0e-8f)
+        {
+            const float factor = targetGain / std::sqrt(maxSumSq);
+            buf.applyGain(factor);
+        }
+    }
+
     // Load 1024-tap zero-latency FIR WAV from embedded binary memory (or file)
     // juce::dsp::Convolution loads asynchronously on its internal background thread
     void loadBassMicImpulse(juce::AudioBuffer<float>&& irBuffer, double irSampleRate)
     {
+        normaliseBufferEnergy(irBuffer, 0.85f);
         bassMicConv.loadImpulseResponse(
             std::move(irBuffer),
             irSampleRate,
             juce::dsp::Convolution::Stereo::yes,
             juce::dsp::Convolution::Trim::no,
-            juce::dsp::Convolution::Normalise::yes);
+            juce::dsp::Convolution::Normalise::no);
     }
 
     void loadTrebleMicImpulse(juce::AudioBuffer<float>&& irBuffer, double irSampleRate)
     {
+        normaliseBufferEnergy(irBuffer, 0.85f);
         trebleMicConv.loadImpulseResponse(
             std::move(irBuffer),
             irSampleRate,
             juce::dsp::Convolution::Stereo::yes,
             juce::dsp::Convolution::Trim::no,
-            juce::dsp::Convolution::Normalise::yes);
+            juce::dsp::Convolution::Normalise::no);
     }
 
     void loadRoomImpulse(const void* data, size_t size)
@@ -151,12 +176,14 @@ public:
                 reader->read(&irBuffer, 0, numSamples, 0, true, numCh > 1);
                 reader.reset();
 
+                normaliseBufferEnergy(irBuffer, 1.15f);
+
                 roomConv.loadImpulseResponse(
                     std::move(irBuffer),
                     irRate,
                     juce::dsp::Convolution::Stereo::yes,
                     juce::dsp::Convolution::Trim::yes,
-                    juce::dsp::Convolution::Normalise::yes);
+                    juce::dsp::Convolution::Normalise::no);
             }
             return;
         }
@@ -258,8 +285,11 @@ public:
             juce::dsp::ProcessContextReplacing<float> roomContext(roomSubBlock);
             roomConv.process(roomContext);
 
+            const float dryScale = 1.0f - 0.35f * roomWet;
+            const float wetScale = roomWet * 1.35f;
+            outputBuffer.applyGain(0, numSamples, dryScale);
             for (int ch = 0; ch < 2; ++ch)
-                outputBuffer.addFrom(ch, 0, roomSendBuffer, ch, 0, numSamples, roomWet);
+                outputBuffer.addFrom(ch, 0, roomSendBuffer, ch, 0, numSamples, wetScale);
         }
     }
 

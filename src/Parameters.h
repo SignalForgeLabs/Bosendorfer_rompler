@@ -96,7 +96,7 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout
         IDs::micCrossfeed, "Mic Bleed / Spill", juce::NormalisableRange<float>(0.0f, 0.5f, 0.01f), 0.15f));
 
     params.push_back(std::make_unique<juce::AudioParameterChoice>(
-        IDs::roomIrType, "Acoustic Space", roomChoices, 0));
+        IDs::roomIrType, "Acoustic Space", roomChoices, 1));
 
     params.push_back(std::make_unique<juce::AudioParameterFloat>(
         IDs::roomMix, "Room IR Mix", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.25f));
