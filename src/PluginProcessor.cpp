@@ -226,25 +226,41 @@ void BosendorferAudioProcessor::updateImpulses(bool forceReload)
     if (forceReload || currentRoom != activeRoomIndex)
     {
         activeRoomIndex = currentRoom;
+        acousticEngine.setRoomDryBypass(activeRoomIndex == 0);
 
         const void* rawData = nullptr;
         size_t rawSize = 0;
 
         switch (activeRoomIndex)
         {
-            case 0: // Vienna Konzerthaus (~2.1s RT60)
+            case 0: // Dry (blank IR - no change to dry sound)
+                rawData = BinaryData::venue_dry_enc_wav;
+                rawSize = static_cast<size_t>(BinaryData::venue_dry_enc_wavSize);
+                break;
+
+            case 1: // Vienna Konzerthaus (ConradPrebysConcertHallSeatF111.wav)
                 rawData = BinaryData::vienna_konzerthaus_enc_wav;
-                rawSize = BinaryData::vienna_konzerthaus_enc_wavSize;
+                rawSize = static_cast<size_t>(BinaryData::vienna_konzerthaus_enc_wavSize);
                 break;
 
-            case 1: // Maple Stage 40ft (~1.3s RT60)
+            case 2: // Maple Stage 40ft (MillsGreekTheater.wav)
                 rawData = BinaryData::maple_stage_40ft_enc_wav;
-                rawSize = BinaryData::maple_stage_40ft_enc_wavSize;
+                rawSize = static_cast<size_t>(BinaryData::maple_stage_40ft_enc_wavSize);
                 break;
 
-            case 2: // Scoring Studio Hall (~0.9s RT60)
+            case 3: // Naumburg Band Shell (NaumburgBandshell.wav)
+                rawData = BinaryData::naumburg_bandshell_enc_wav;
+                rawSize = static_cast<size_t>(BinaryData::naumburg_bandshell_enc_wavSize);
+                break;
+
+            case 4: // Scoring Studio Hall (SteinmanHall.wav)
                 rawData = BinaryData::scoring_studio_hall_enc_wav;
-                rawSize = BinaryData::scoring_studio_hall_enc_wavSize;
+                rawSize = static_cast<size_t>(BinaryData::scoring_studio_hall_enc_wavSize);
+                break;
+
+            case 5: // Art Gallery (Space4ArtGallery.wav)
+                rawData = BinaryData::art_gallery_enc_wav;
+                rawSize = static_cast<size_t>(BinaryData::art_gallery_enc_wavSize);
                 break;
 
             default:

@@ -2,12 +2,18 @@
 #include <juce_core/juce_core.h>
 #include "BinaryData.h"
 
-#define vienna_konzerthaus_enc_wav          Room_ViennaKonzerthaus_bin
-#define vienna_konzerthaus_enc_wavSize      Room_ViennaKonzerthaus_binSize
-#define maple_stage_40ft_enc_wav            Room_MapleStage40ft_bin
-#define maple_stage_40ft_enc_wavSize        Room_MapleStage40ft_binSize
-#define scoring_studio_hall_enc_wav         Room_ScoringStudioHall_bin
-#define scoring_studio_hall_enc_wavSize     Room_ScoringStudioHall_binSize
+#define venue_dry_enc_wav                   Venue_Dry_bin
+#define venue_dry_enc_wavSize               Venue_Dry_binSize
+#define vienna_konzerthaus_enc_wav          ConradPrebysConcertHallSeatF111_bin
+#define vienna_konzerthaus_enc_wavSize      ConradPrebysConcertHallSeatF111_binSize
+#define maple_stage_40ft_enc_wav            MillsGreekTheater_bin
+#define maple_stage_40ft_enc_wavSize        MillsGreekTheater_binSize
+#define naumburg_bandshell_enc_wav          NaumburgBandshell_bin
+#define naumburg_bandshell_enc_wavSize      NaumburgBandshell_binSize
+#define scoring_studio_hall_enc_wav         SteinmanHall_bin
+#define scoring_studio_hall_enc_wavSize     SteinmanHall_binSize
+#define art_gallery_enc_wav                 Space4ArtGallery_bin
+#define art_gallery_enc_wavSize             Space4ArtGallery_binSize
 
 class IRShieldLoader
 {

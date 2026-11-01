@@ -90,6 +90,11 @@ public:
         return micSectionBypassed.load(std::memory_order_relaxed);
     }
 
+    void setRoomDryBypass(bool dryBypass) noexcept
+    {
+        roomDryBypass.store(dryBypass, std::memory_order_relaxed);
+    }
+
     void setLidPosition(float normalizedLid, bool softPedal = false)
     {
         const float clamped = juce::jlimit(0.0f, 1.0f, normalizedLid);
@@ -239,8 +244,8 @@ public:
             lidFilter.process(lidCtx);
         }
 
-        // 5. Global Room Stage Convolution Send
-        if (roomWet > 0.001f)
+        // 5. Global Room Stage Convolution Send (bypassed when "Dry" venue is selected)
+        if (roomWet > 0.001f && !roomDryBypass.load(std::memory_order_relaxed))
         {
             if (roomSendBuffer.getNumSamples() < numSamples)
                 roomSendBuffer.setSize(2, numSamples, false, false, true);
@@ -367,6 +372,7 @@ private:
     float lidPosition { 1.0f };
     bool softPedalActive { false };
     std::atomic<bool> micSectionBypassed { false };
+    std::atomic<bool> roomDryBypass { false };
 
     juce::dsp::Convolution bassMicConv;
     juce::dsp::Convolution trebleMicConv;

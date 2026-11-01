@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import sys
+import wave
 
 # Rolling 32-byte compile key (keep identical in your C++ header)
 CIPHER_KEY = b"SFALabs_AudioShield_2026_AJ_Key"
@@ -23,10 +24,24 @@ PRODUCTION_ASSETS = [
     ("RCA 44BX NEVE.wav", "RCA 44BX NEVE.bin"),
     ("BOSENDRF.SF2", "BOSENDRF.bin"),
     ("BOSENBRI.SF2", "BOSENBRI.bin"),
-    ("IRs/Room_ViennaKonzerthaus.wav", "Room_ViennaKonzerthaus.bin"),
-    ("IRs/Room_MapleStage40ft.wav", "Room_MapleStage40ft.bin"),
-    ("IRs/Room_ScoringStudioHall.wav", "Room_ScoringStudioHall.bin"),
+    ("IRs/venue/Dry.wav", "Venue_Dry.bin"),
+    ("IRs/venue/ConradPrebysConcertHallSeatF111.wav", "ConradPrebysConcertHallSeatF111.bin"),
+    ("IRs/venue/MillsGreekTheater.wav", "MillsGreekTheater.bin"),
+    ("IRs/venue/NaumburgBandshell.wav", "NaumburgBandshell.bin"),
+    ("IRs/venue/SteinmanHall.wav", "SteinmanHall.bin"),
+    ("IRs/venue/Space4ArtGallery.wav", "Space4ArtGallery.bin"),
 ]
+
+
+def ensure_dry_ir(dry_wav_path):
+    if os.path.exists(dry_wav_path):
+        return
+    os.makedirs(os.path.dirname(dry_wav_path), exist_ok=True)
+    with wave.open(dry_wav_path, "wb") as wf:
+        wf.setnchannels(2)
+        wf.setsampwidth(2)
+        wf.setframerate(44100)
+        wf.writeframes(b"\x00\x00\x00\x00" * 64)
 
 
 def scramble_file(input_path, output_path):
@@ -57,9 +72,16 @@ if __name__ == "__main__":
     in_dir = sys.argv[1]
     out_dir = sys.argv[2]
 
+    ensure_dry_ir(os.path.join(in_dir, "IRs", "venue", "Dry.wav"))
+
+    os.makedirs(out_dir, exist_ok=True)
+    valid_outputs = {rel_out for _, rel_out in PRODUCTION_ASSETS}
+    for existing in os.listdir(out_dir):
+        if existing.endswith(".bin") and existing not in valid_outputs:
+            os.remove(os.path.join(out_dir, existing))
+
     for rel_in, rel_out in PRODUCTION_ASSETS:
         in_file = os.path.join(in_dir, rel_in)
         out_file = os.path.join(out_dir, rel_out)
         if not scramble_file(in_file, out_file):
             sys.exit(1)
-

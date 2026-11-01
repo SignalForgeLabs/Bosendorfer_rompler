@@ -329,9 +329,12 @@ BosendorferAudioProcessorEditor::BosendorferAudioProcessorEditor(BosendorferAudi
     venueLabel.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(venueLabel);
 
-    venueSelector.addItem("Vienna Konzerthaus", 1);
-    venueSelector.addItem("Maple Stage 40ft",    2);
-    venueSelector.addItem("Scoring Studio Hall", 3);
+    venueSelector.addItem("Dry",                 1);
+    venueSelector.addItem("Vienna Konzerthaus",  2);
+    venueSelector.addItem("Maple Stage 40ft",    3);
+    venueSelector.addItem("Naumburg Band Shell", 4);
+    venueSelector.addItem("Scoring Studio Hall", 5);
+    venueSelector.addItem("Art Gallery",         6);
     venueSelector.setColour(juce::ComboBox::backgroundColourId, juce::Colour(0xcc141618));
     venueSelector.setColour(juce::ComboBox::outlineColourId, juce::Colour(0x44ffffff));
     venueSelector.setColour(juce::ComboBox::textColourId, juce::Colours::white);
@@ -353,7 +356,7 @@ BosendorferAudioProcessorEditor::BosendorferAudioProcessorEditor(BosendorferAudi
     velCurveBoxAttachment = std::make_unique<SliderAttachment>(audioProcessor.apvts, IDs::velCurve.getParamID(), velCurveBoxSlider);
 
     // --- Center Viewport Overlay Selectors (4 Selectable Mics for Left & Right + Room IR) ---
-    roomIrSelector.addItemList({ "Vienna Konzerthaus", "Maple Stage 40ft", "Scoring Studio Hall" }, 1);
+    roomIrSelector.addItemList({ "Dry", "Vienna Konzerthaus", "Maple Stage 40ft", "Naumburg Band Shell", "Scoring Studio Hall", "Art Gallery" }, 1);
     addAndMakeVisible(roomIrSelector);
     roomIrAttachment = std::make_unique<ComboBoxAttachment>(
         audioProcessor.apvts, IDs::roomIrType.getParamID(), roomIrSelector);

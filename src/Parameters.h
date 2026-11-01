@@ -57,7 +57,14 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout
         "Neumann U87",
         "RCA 44BX NEVE 1073"
     };
-    juce::StringArray roomChoices { "Vienna Konzerthaus", "Maple Stage 40ft", "Scoring Studio Hall" };
+    juce::StringArray roomChoices {
+        "Dry",
+        "Vienna Konzerthaus",
+        "Maple Stage 40ft",
+        "Naumburg Band Shell",
+        "Scoring Studio Hall",
+        "Art Gallery"
+    };
 
     // Default Left (Bass) Mic: Neuman TLM 103 (1), Default Right (Treble) Mic: Neumann KM 184 (0)
     params.push_back(std::make_unique<juce::AudioParameterChoice>(
