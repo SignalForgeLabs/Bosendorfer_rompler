@@ -54,9 +54,13 @@ public:
 
     juce::File getLicenseFile() const
     {
-        return juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-            .getChildFile("SignalForge")
-            .getChildFile("Bosendorfer290.lic");
+        auto dir = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
+                       .getChildFile("SignalForge");
+        auto viennaLic = dir.getChildFile("ClassicVienna290.lic");
+        auto legacyLic = dir.getChildFile("Bosendorfer290.lic");
+        if (!viennaLic.existsAsFile() && legacyLic.existsAsFile())
+            return legacyLic;
+        return viennaLic;
     }
 
 private:

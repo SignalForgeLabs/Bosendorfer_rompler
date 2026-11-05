@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(BosendorferImperial VERSION 1.0.0 LANGUAGES C CXX)
+project(ClassicVienna290 VERSION 1.0.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -59,9 +59,10 @@ else()
     set(AUTO_COPY_AFTER_BUILD TRUE)
 endif()
 
-juce_add_plugin(BosendorferImperial
-    COMPANY_NAME "SignalForgeLabs"
-    BUNDLE_ID "com.SignalForgeLabs.BosendorferImperial290"
+juce_add_plugin(ClassicVienna290
+    COMPANY_NAME "Signal Forge Audio Labs"
+    BUNDLE_ID "com.SignalForgeAudioLabs.ClassicVienna290"
+    DESCRIPTION "97-Key Concert Grand Piano"
     IS_SYNTH TRUE
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT FALSE
@@ -69,13 +70,13 @@ juce_add_plugin(BosendorferImperial
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     COPY_PLUGIN_AFTER_BUILD ${AUTO_COPY_AFTER_BUILD}
     PLUGIN_MANUFACTURER_CODE Sfal
-    PLUGIN_CODE Bsd9
+    PLUGIN_CODE Cv90
     FORMATS ${PLUGIN_FORMATS}
-    PRODUCT_NAME "Bosendorfer Imperial 290"
+    PRODUCT_NAME "Classic Vienna 290"
 )
 
 # 4. Source Files & Include Directories
-target_sources(BosendorferImperial
+target_sources(ClassicVienna290
     PRIVATE
         src/PluginProcessor.cpp
         src/PluginProcessor.h
@@ -97,14 +98,14 @@ target_sources(BosendorferImperial
         libs/tsf.h
 )
 
-target_include_directories(BosendorferImperial
+target_include_directories(ClassicVienna290
     PRIVATE
         src
         libs
 )
 
 # Pass ASSETS_DIRECTORY macro so the GUI knows the local relative path in debug builds
-target_compile_definitions(BosendorferImperial
+target_compile_definitions(ClassicVienna290
     PRIVATE
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
@@ -113,17 +114,17 @@ target_compile_definitions(BosendorferImperial
 )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_compile_definitions(BosendorferImperial
+    target_compile_definitions(ClassicVienna290
         PUBLIC
             JUCE_ALSA=1
             JUCE_JACK=1
     )
-    target_compile_options(BosendorferImperial PUBLIC -ffunction-sections -fdata-sections)
-    target_link_options(BosendorferImperial PUBLIC "-Wl,--gc-sections")
+    target_compile_options(ClassicVienna290 PUBLIC -ffunction-sections -fdata-sections)
+    target_link_options(ClassicVienna290 PUBLIC "-Wl,--gc-sections")
 endif()
 
 # 5. Link JUCE Modules & Assets
-target_link_libraries(BosendorferImperial
+target_link_libraries(ClassicVienna290
     PRIVATE
         PluginAssets
         ${CMAKE_DL_LIBS}

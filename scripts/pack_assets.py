@@ -22,8 +22,8 @@ PRODUCTION_ASSETS = [
     ("RCA_Ribbon_L.png", "RCA_Ribbon_L.bin"),
     ("RCA_Ribbon_R.png", "RCA_Ribbon_R.bin"),
     ("RCA 44BX NEVE.wav", "RCA 44BX NEVE.bin"),
-    ("BOSENDRF.SF2", "BOSENDRF.bin"),
-    ("BOSENBRI.SF2", "BOSENBRI.bin"),
+    ("BOSENDRF.SF2", "Vienna_290_Full.bin"),
+    ("BOSENBRI.SF2", "Vienna_290_Brite.bin"),
     ("IRs/venue/Dry.wav", "Venue_Dry.bin"),
     ("IRs/venue/ConradPrebysConcertHallSeatF111.wav", "ConradPrebysConcertHallSeatF111.bin"),
     ("IRs/venue/MillsGreekTheater.wav", "MillsGreekTheater.bin"),
@@ -51,6 +51,18 @@ def scramble_file(input_path, output_path):
 
     with open(input_path, "rb") as f_in:
         raw_bytes = bytearray(f_in.read())
+
+    if input_path.lower().endswith(".sf2"):
+        # Replace any internal 11-byte or 8-byte ASCII SF2 preset/instrument brand strings
+        # with exact-length Vienna 290 equivalents so chunk lengths remain identical.
+        for old_bytes, new_bytes in [
+            (b"Bosendorfer", b"Vienna 290 "),
+            (b"BOSENDORFER", b"VIENNA 290 "),
+            (b"bosendorfer", b"vienna 290 "),
+            (b"BOSENDRF",    b"VIENNA29"),
+            (b"BOSENBRI",    b"VIENNABR"),
+        ]:
+            raw_bytes = bytearray(bytes(raw_bytes).replace(old_bytes, new_bytes))
 
     key_len = len(CIPHER_KEY)
     for i in range(len(raw_bytes)):

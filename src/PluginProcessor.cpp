@@ -71,7 +71,7 @@ const juce::String BosendorferAudioProcessor::getProgramName(int index)
     const auto presets = sfEngine.getPresetNames();
     if (juce::isPositiveAndBelow(index, presets.size()))
         return presets[index];
-    return "Bosendorfer Imperial";
+    return "Vienna Imperial Stage";
 }
 
 void BosendorferAudioProcessor::changeProgramName(int, const juce::String&) {}
@@ -79,14 +79,14 @@ void BosendorferAudioProcessor::changeProgramName(int, const juce::String&) {}
 bool BosendorferAudioProcessor::loadEmbeddedSoundFont(EmbeddedBank bank)
 {
     const void* data = (bank == EmbeddedBank::Bright)
-                           ? static_cast<const void*>(BinaryData::BOSENBRI_bin)
-                           : static_cast<const void*>(BinaryData::BOSENDRF_bin);
+                           ? static_cast<const void*>(BinaryData::Vienna_290_Brite_bin)
+                           : static_cast<const void*>(BinaryData::Vienna_290_Full_bin);
     const int size = (bank == EmbeddedBank::Bright)
-                         ? BinaryData::BOSENBRI_binSize
-                         : BinaryData::BOSENDRF_binSize;
+                         ? BinaryData::Vienna_290_Brite_binSize
+                         : BinaryData::Vienna_290_Full_binSize;
     const juce::String label = (bank == EmbeddedBank::Bright)
-                                   ? "Brite"
-                                   : "Standard";
+                                   ? "Vienna_290_Brite.sf2"
+                                   : "Vienna_290_Full.sf2";
 
     const bool ok = sfEngine.loadFromMemory(data, size, label);
 

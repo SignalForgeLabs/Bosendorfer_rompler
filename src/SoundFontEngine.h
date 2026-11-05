@@ -18,7 +18,7 @@ public:
         close();
     }
 
-    bool loadFromMemory(const void* data, int sizeBytes, const juce::String& sourceLabel = "Embedded Bosendorfer Imperial")
+    bool loadFromMemory(const void* data, int sizeBytes, const juce::String& sourceLabel = "Vienna_290_Full.sf2")
     {
         tsf* newFont = AssetShield::loadSoundFont(data, sizeBytes);
         if (!newFont)
@@ -186,7 +186,21 @@ public:
 
     juce::StringArray getPresetNames() const
     {
+        static const char* const kStandardViennaPresets[] = {
+            "Vienna Imperial Stage",
+            "Konzerthaus Ambient Grand",
+            "Vienna Scoring Studio",
+            "Vienna Intimate Salon"
+        };
+        static const char* const kBriteViennaPresets[] = {
+            "Konzerthaus Ambient Grand",
+            "Vienna Imperial Brite",
+            "Vienna Concert Stage",
+            "Vienna Recital Hall"
+        };
+
         juce::StringArray names;
+        const bool isBriteBank = getCurrentSourceName().containsIgnoreCase("Brite");
         const juce::SpinLock::ScopedLockType lock(renderLock);
         if (soundFont)
         {
@@ -195,8 +209,19 @@ public:
             {
                 const char* rawName = tsf_get_presetname(soundFont, i);
                 juce::String name = rawName ? juce::String::fromUTF8(rawName).trim() : juce::String();
-                if (name.isEmpty())
-                    name = "Preset " + juce::String(i + 1);
+
+                name = name.replace("Bösendorfer", "Vienna", true)
+                           .replace("Bosendorfer", "Vienna", true)
+                           .replace("Bosen", "Vienna", true)
+                           .trim();
+
+                if (name.isEmpty() || !loadedFile.existsAsFile())
+                {
+                    if (i < 4)
+                        name = isBriteBank ? kBriteViennaPresets[i] : kStandardViennaPresets[i];
+                    else if (name.isEmpty())
+                        name = "Vienna 290 Preset " + juce::String(i + 1);
+                }
                 names.add(name);
             }
         }

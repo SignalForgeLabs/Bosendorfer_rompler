@@ -7,24 +7,24 @@ cd "$REPO_ROOT"
 
 VERSION="1.0.0"
 DIST_DIR="$REPO_ROOT/dist/linux"
-PKG_DIR="$DIST_DIR/Bosendorfer_Imperial_290_Linux_v${VERSION}"
+PKG_DIR="$DIST_DIR/Classic_Vienna_290_Linux_v${VERSION}"
 
 echo "=========================================================="
-echo " Packaging Linux Distribution v${VERSION}"
+echo " Packaging Classic Vienna 290 Linux Distribution v${VERSION}"
 echo "=========================================================="
 
-VST3_SRC=$(find "build/BosendorferImperial_artefacts/Release" "build/BosendorferImperial_artefacts" -name "Bosendorfer Imperial 290.vst3" -type d 2>/dev/null | head -n 1)
-STANDALONE_SRC=$(find "build/BosendorferImperial_artefacts/Release" "build/BosendorferImperial_artefacts" -name "Bosendorfer Imperial 290" -type f 2>/dev/null | head -n 1)
+VST3_SRC=$(find "build/ClassicVienna290_artefacts/Release" "build/ClassicVienna290_artefacts" -name "Classic Vienna 290.vst3" -type d 2>/dev/null | head -n 1)
+STANDALONE_SRC=$(find "build/ClassicVienna290_artefacts/Release" "build/ClassicVienna290_artefacts" -name "Classic Vienna 290" -type f 2>/dev/null | head -n 1)
 
 if [ -z "$VST3_SRC" ] || [ ! -d "$VST3_SRC" ]; then
-    echo "ERROR: Bosendorfer Imperial 290.vst3 was not found in build/BosendorferImperial_artefacts!"
-    ls -laR build/BosendorferImperial_artefacts 2>/dev/null || true
+    echo "ERROR: Classic Vienna 290.vst3 was not found in build/ClassicVienna290_artefacts!"
+    ls -laR build/ClassicVienna290_artefacts 2>/dev/null || true
     exit 1
 fi
 
 if [ -z "$STANDALONE_SRC" ] || [ ! -f "$STANDALONE_SRC" ]; then
-    echo "ERROR: Bosendorfer Imperial 290 standalone executable was not found in build/BosendorferImperial_artefacts!"
-    ls -laR build/BosendorferImperial_artefacts 2>/dev/null || true
+    echo "ERROR: Classic Vienna 290 standalone executable was not found in build/ClassicVienna290_artefacts!"
+    ls -laR build/ClassicVienna290_artefacts 2>/dev/null || true
     exit 1
 fi
 
@@ -35,9 +35,9 @@ echo " - Standalone: $STANDALONE_SRC"
 rm -rf "$PKG_DIR"
 mkdir -p "$PKG_DIR"
 
-cp -R "$VST3_SRC" "$PKG_DIR/Bosendorfer Imperial 290.vst3"
-cp "$STANDALONE_SRC" "$PKG_DIR/Bosendorfer Imperial 290"
-chmod +x "$PKG_DIR/Bosendorfer Imperial 290"
+cp -R "$VST3_SRC" "$PKG_DIR/Classic Vienna 290.vst3"
+cp "$STANDALONE_SRC" "$PKG_DIR/Classic Vienna 290"
+chmod +x "$PKG_DIR/Classic Vienna 290"
 cp packaging/common/README_INSTALL.txt "$PKG_DIR/README.txt"
 
 cat << 'INSTALL_EOF' > "$PKG_DIR/install.sh"
@@ -46,27 +46,30 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "=========================================================="
-echo " Installing Bosendorfer Imperial 290 (Linux)"
+echo " Installing Classic Vienna 290 (Linux)"
+echo " by Signal Forge Audio Labs"
 echo "=========================================================="
 
 # 1. Install VST3 plugin
 DEST_VST3="$HOME/.vst3"
 mkdir -p "$DEST_VST3"
-echo "[1/3] Installing VST3 plugin to $DEST_VST3/Bosendorfer Imperial 290.vst3 ..."
+echo "[1/3] Installing VST3 plugin to $DEST_VST3/Classic Vienna 290.vst3 ..."
 rm -rf "$DEST_VST3/Bosendorfer Imperial 290.vst3"
-cp -R "$SCRIPT_DIR/Bosendorfer Imperial 290.vst3" "$DEST_VST3/"
-chmod -R 755 "$DEST_VST3/Bosendorfer Imperial 290.vst3"
+rm -rf "$DEST_VST3/Classic Vienna 290.vst3"
+cp -R "$SCRIPT_DIR/Classic Vienna 290.vst3" "$DEST_VST3/"
+chmod -R 755 "$DEST_VST3/Classic Vienna 290.vst3"
 
 # 2. Install Standalone binary
 DEST_BIN="$HOME/.local/bin"
 mkdir -p "$DEST_BIN"
-echo "[2/3] Installing standalone executable to $DEST_BIN/bosendorfer-imperial-290 ..."
-rm -f "$DEST_BIN/bosendorfer-imperial-290"
-cp "$SCRIPT_DIR/Bosendorfer Imperial 290" "$DEST_BIN/bosendorfer-imperial-290"
-chmod 755 "$DEST_BIN/bosendorfer-imperial-290"
+echo "[2/3] Installing standalone executable to $DEST_BIN/classic-vienna-290 ..."
+rm -f "$DEST_BIN/classic-vienna-290" "$DEST_BIN/bosendorfer-imperial-290"
+cp "$SCRIPT_DIR/Classic Vienna 290" "$DEST_BIN/classic-vienna-290"
+chmod 755 "$DEST_BIN/classic-vienna-290"
+ln -sf "$DEST_BIN/classic-vienna-290" "$DEST_BIN/bosendorfer-imperial-290"
 
 # Ensure default ALSA audio output configuration exists for Standalone
-SETTINGS_FILE="$HOME/.config/Bosendorfer Imperial 290.settings"
+SETTINGS_FILE="$HOME/.config/Classic Vienna 290.settings"
 mkdir -p "$HOME/.config"
 if [ ! -f "$SETTINGS_FILE" ] || grep -q 'name="audioSetup" val=""' "$SETTINGS_FILE" 2>/dev/null; then
     cat > "$SETTINGS_FILE" << 'SETTINGS_EOF'
@@ -88,58 +91,59 @@ fi
 DESKTOP_DIR="$HOME/Desktop"
 APPS_DIR="$HOME/.local/share/applications"
 mkdir -p "$APPS_DIR"
+rm -f "$APPS_DIR/bosendorfer-imperial-290.desktop" "$DESKTOP_DIR/Bosendorfer_Imperial_290.desktop"
 
-cat << DESKTOP_EOF > "$APPS_DIR/bosendorfer-imperial-290.desktop"
+cat << DESKTOP_EOF > "$APPS_DIR/classic-vienna-290.desktop"
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Bosendorfer Imperial 290
-Comment=SignalForgeLabs Bosendorfer Imperial 290 Concert Grand
-Exec=$DEST_BIN/bosendorfer-imperial-290
+Name=Classic Vienna 290
+Comment=Classic Vienna 290 by Signal Forge Audio Labs
+Exec=$DEST_BIN/classic-vienna-290
 Icon=audio-card
 Terminal=false
 Categories=AudioVideo;Audio;Music;
 StartupNotify=true
 DESKTOP_EOF
-chmod +x "$APPS_DIR/bosendorfer-imperial-290.desktop"
+chmod +x "$APPS_DIR/classic-vienna-290.desktop"
 
 if [ -d "$DESKTOP_DIR" ]; then
-    cp "$APPS_DIR/bosendorfer-imperial-290.desktop" "$DESKTOP_DIR/Bosendorfer_Imperial_290.desktop"
-    chmod +x "$DESKTOP_DIR/Bosendorfer_Imperial_290.desktop"
-    gio set "$DESKTOP_DIR/Bosendorfer_Imperial_290.desktop" metadata::trusted true 2>/dev/null || true
+    cp "$APPS_DIR/classic-vienna-290.desktop" "$DESKTOP_DIR/Classic_Vienna_290.desktop"
+    chmod +x "$DESKTOP_DIR/Classic_Vienna_290.desktop"
+    gio set "$DESKTOP_DIR/Classic_Vienna_290.desktop" metadata::trusted true 2>/dev/null || true
 fi
 
 echo "[3/3] Created Desktop and Application menu shortcuts."
 echo "=========================================================="
 echo " Installation complete!"
-echo " - VST3: $DEST_VST3/Bosendorfer Imperial 290.vst3"
-echo " - Standalone: $DEST_BIN/bosendorfer-imperial-290"
+echo " - VST3: $DEST_VST3/Classic Vienna 290.vst3"
+echo " - Standalone: $DEST_BIN/classic-vienna-290"
 echo "=========================================================="
 INSTALL_EOF
 chmod +x "$PKG_DIR/install.sh"
 
 cd "$DIST_DIR"
-tar -czvf "Bosendorfer_Imperial_290_Linux_v${VERSION}.tar.gz" "Bosendorfer_Imperial_290_Linux_v${VERSION}"
-zip -r "Bosendorfer_Imperial_290_Linux_v${VERSION}.zip" "Bosendorfer_Imperial_290_Linux_v${VERSION}"
+tar -czvf "Classic_Vienna_290_Linux_v${VERSION}.tar.gz" "Classic_Vienna_290_Linux_v${VERSION}"
+zip -r "Classic_Vienna_290_Linux_v${VERSION}.zip" "Classic_Vienna_290_Linux_v${VERSION}"
 
 # Build self-extracting installable binary (.run)
-RUN_INSTALLER="$DIST_DIR/Bosendorfer_Imperial_290_Linux_v${VERSION}_Installer.run"
+RUN_INSTALLER="$DIST_DIR/Classic_Vienna_290_Linux_v${VERSION}_Installer.run"
 cat << 'RUN_HEADER_EOF' > "$RUN_INSTALLER"
 #!/usr/bin/env bash
 set -e
 echo "=========================================================="
-echo " Bosendorfer Imperial 290 v1.0.0 Self-Extracting Installer"
-echo " by SignalForge Audio Labs"
+echo " Classic Vienna 290 v1.0.0 Self-Extracting Installer"
+echo " by Signal Forge Audio Labs"
 echo "=========================================================="
-TMP_EXTRACT="$(mktemp -d /tmp/bosendorfer_installer.XXXXXX)"
+TMP_EXTRACT="$(mktemp -d /tmp/classic_vienna_installer.XXXXXX)"
 trap 'rm -rf "$TMP_EXTRACT"' EXIT
 ARCHIVE_LINE=$(awk '/^__ARCHIVE_BELOW__/ {print NR + 1; exit 0; }' "$0")
 tail -n +"$ARCHIVE_LINE" "$0" | tar -xz -C "$TMP_EXTRACT"
-bash "$TMP_EXTRACT/Bosendorfer_Imperial_290_Linux_v1.0.0/install.sh"
+bash "$TMP_EXTRACT/Classic_Vienna_290_Linux_v1.0.0/install.sh"
 exit 0
 __ARCHIVE_BELOW__
 RUN_HEADER_EOF
-cat "Bosendorfer_Imperial_290_Linux_v${VERSION}.tar.gz" >> "$RUN_INSTALLER"
+cat "Classic_Vienna_290_Linux_v${VERSION}.tar.gz" >> "$RUN_INSTALLER"
 chmod +x "$RUN_INSTALLER"
 
 # Build Debian/Ubuntu/Mint installable package (.deb)
@@ -150,18 +154,18 @@ mkdir -p "$DEB_STAGE/usr/bin"
 mkdir -p "$DEB_STAGE/usr/lib/vst3"
 mkdir -p "$DEB_STAGE/usr/share/applications"
 
-cp "$REPO_ROOT/$STANDALONE_SRC" "$DEB_STAGE/usr/bin/bosendorfer-imperial-290"
-chmod 755 "$DEB_STAGE/usr/bin/bosendorfer-imperial-290"
-cp -R "$REPO_ROOT/$VST3_SRC" "$DEB_STAGE/usr/lib/vst3/Bosendorfer Imperial 290.vst3"
-chmod -R 755 "$DEB_STAGE/usr/lib/vst3/Bosendorfer Imperial 290.vst3"
+cp "$REPO_ROOT/$STANDALONE_SRC" "$DEB_STAGE/usr/bin/classic-vienna-290"
+chmod 755 "$DEB_STAGE/usr/bin/classic-vienna-290"
+cp -R "$REPO_ROOT/$VST3_SRC" "$DEB_STAGE/usr/lib/vst3/Classic Vienna 290.vst3"
+chmod -R 755 "$DEB_STAGE/usr/lib/vst3/Classic Vienna 290.vst3"
 
-cat << 'DEB_DESKTOP_EOF' > "$DEB_STAGE/usr/share/applications/bosendorfer-imperial-290.desktop"
+cat << 'DEB_DESKTOP_EOF' > "$DEB_STAGE/usr/share/applications/classic-vienna-290.desktop"
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Bosendorfer Imperial 290
-Comment=Bosendorfer Imperial 290 by SignalForge Audio Labs
-Exec=/usr/bin/bosendorfer-imperial-290
+Name=Classic Vienna 290
+Comment=Classic Vienna 290 by Signal Forge Audio Labs
+Exec=/usr/bin/classic-vienna-290
 Icon=audio-card
 Terminal=false
 Categories=AudioVideo;Audio;Music;
@@ -170,19 +174,19 @@ DEB_DESKTOP_EOF
 
 INSTALLED_KB=$(du -sk "$DEB_STAGE/usr" | cut -f1)
 cat << DEB_CONTROL_EOF > "$DEB_STAGE/DEBIAN/control"
-Package: bosendorfer-imperial-290
+Package: classic-vienna-290
 Version: ${VERSION}
 Section: sound
 Priority: optional
 Architecture: amd64
 Installed-Size: ${INSTALLED_KB}
-Maintainer: SignalForge Audio Labs <support@sfalabs.digital>
-Description: Bosendorfer Imperial 290 Concert Grand by SignalForge Audio Labs
+Maintainer: Signal Forge Audio Labs <support@sfalabs.digital>
+Description: Classic Vienna 290 Concert Grand by Signal Forge Audio Labs
  97-Key Concert Grand Piano Rompler with dual-microphone convolution and room IRs.
  Includes both the Standalone application and the VST3 plugin.
 DEB_CONTROL_EOF
 
-DEB_OUT="$DIST_DIR/bosendorfer-imperial-290_${VERSION}_amd64.deb"
+DEB_OUT="$DIST_DIR/classic-vienna-290_${VERSION}_amd64.deb"
 if command -v dpkg-deb >/dev/null 2>&1; then
     dpkg-deb --root-owner-group --build "$DEB_STAGE" "$DEB_OUT"
 else
@@ -224,7 +228,6 @@ echo "=========================================================="
 echo " Linux packages created:"
 echo " - $RUN_INSTALLER"
 echo " - $DEB_OUT"
-echo " - $DIST_DIR/Bosendorfer_Imperial_290_Linux_v${VERSION}.tar.gz"
-echo " - $DIST_DIR/Bosendorfer_Imperial_290_Linux_v${VERSION}.zip"
+echo " - $DIST_DIR/Classic_Vienna_290_Linux_v${VERSION}.tar.gz"
+echo " - $DIST_DIR/Classic_Vienna_290_Linux_v${VERSION}.zip"
 echo "=========================================================="
-

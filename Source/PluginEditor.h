@@ -357,13 +357,13 @@ public:
 
         g.setColour(juce::Colour(0xfff5d76e));
         g.setFont(juce::FontOptions(16.0f, juce::Font::bold));
-        g.drawText("SIGNALFORGE LICENSE ACTIVATION",
+        g.drawText("SIGNAL FORGE AUDIO LABS",
                    card.withTop(card.getY() + 14.0f).withHeight(24.0f),
                    juce::Justification::centred);
 
         g.setColour(juce::Colour(0xffb8b2a6));
         g.setFont(juce::FontOptions(11.5f));
-        g.drawText("Bosendorfer Imperial 290  -  Enter Email & Serial Key",
+        g.drawText("Classic Vienna 290  -  Enter Email & Serial Key",
                    card.withTop(card.getY() + 38.0f).withHeight(18.0f),
                    juce::Justification::centred);
 

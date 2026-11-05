@@ -590,16 +590,16 @@ void BosendorferAudioProcessorEditor::paint(juce::Graphics& g)
     }
 
     //==========================================================================
-    // Top Header Title, Mason's Mark & MIDI / Voice Indicators
+    // 1. Fallboard / Top Header Title ("CLASSIC VIENNA 290")
     //==========================================================================
-    g.setColour(juce::Colour(0xffdcd8d0));
-    g.setFont(juce::FontOptions(22.0f * scaleY, juce::Font::bold));
-    g.drawText("BOSENDORFER IMPERIAL 290",
-               static_cast<int>(18.0f * scaleX), static_cast<int>(8.0f * scaleY),
-               static_cast<int>(420.0f * scaleX), static_cast<int>(25.0f * scaleY),
-               juce::Justification::centredLeft);
+    g.setFont(juce::FontOptions("Didot", 24.0f * scaleY, juce::Font::bold));
+    g.setColour(juce::Colour(0xFFE5C158)); // Polished brass lettering
+    g.drawText("CLASSIC VIENNA 290",
+               static_cast<int>(18.0f * scaleX), static_cast<int>(6.0f * scaleY),
+               static_cast<int>(420.0f * scaleX), static_cast<int>(26.0f * scaleY),
+               juce::Justification::centredLeft, true);
 
-    // SignalForge Audio Labs Mason's Mark (geometric chisel/compass glyph in burnished gold)
+    // 2. Maker's Badge & Mason's Mark ("SIGNAL FORGE AUDIO LABS")
     {
         const float mx = 20.0f * scaleX;
         const float my = 35.5f * scaleY;
@@ -615,28 +615,28 @@ void BosendorferAudioProcessorEditor::paint(juce::Graphics& g)
         masonsMark.lineTo(mx, cy);
         masonsMark.closeSubPath();
 
-        // Inner mason chisel vertical axis & SignalForge chevron crossbar
+        // Inner mason chisel vertical axis & Signal Forge chevron crossbar
         masonsMark.startNewSubPath(cx, my + ms * 0.18f);
         masonsMark.lineTo(cx, my + ms * 0.82f);
         masonsMark.startNewSubPath(mx + ms * 0.24f, cy - ms * 0.14f);
         masonsMark.lineTo(cx, cy + ms * 0.16f);
         masonsMark.lineTo(mx + ms * 0.76f, cy - ms * 0.14f);
 
-        g.setColour(juce::Colour(0xffd4af37));
+        g.setColour(juce::Colour(0xFFE5C158));
         g.strokePath(masonsMark, juce::PathStrokeType(1.35f * scaleY));
     }
 
-    g.setColour(juce::Colour(0xffd4af37));
-    g.setFont(juce::FontOptions(11.5f * scaleY, juce::Font::bold));
-    g.drawText("by SignalForge Audio Labs",
-               static_cast<int>(38.0f * scaleX), static_cast<int>(33.0f * scaleY),
-               static_cast<int>(175.0f * scaleX), static_cast<int>(17.0f * scaleY),
-               juce::Justification::centredLeft);
+    g.setFont(juce::FontOptions("Helvetica Neue", 10.5f * scaleY, juce::Font::bold));
+    g.setColour(juce::Colour(0xFFC0A060)); // Soft gold silkscreen
+    g.drawText("SIGNAL FORGE AUDIO LABS",
+               static_cast<int>(38.0f * scaleX), static_cast<int>(34.0f * scaleY),
+               static_cast<int>(175.0f * scaleX), static_cast<int>(16.0f * scaleY),
+               juce::Justification::centredLeft, true);
 
     g.setColour(juce::Colour(0xff9e9a92));
     g.setFont(juce::FontOptions(10.0f * scaleY, juce::Font::bold));
     g.drawText("|   97-KEY CONCERT GRAND  -  " + audioProcessor.getCurrentSoundFontName().toUpperCase(),
-               static_cast<int>(212.0f * scaleX), static_cast<int>(34.0f * scaleY),
+               static_cast<int>(214.0f * scaleX), static_cast<int>(34.0f * scaleY),
                static_cast<int>(420.0f * scaleX), static_cast<int>(16.0f * scaleY),
                juce::Justification::centredLeft);
 
