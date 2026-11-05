@@ -676,10 +676,12 @@ void BosendorferAudioProcessorEditor::paint(juce::Graphics& g)
     g.fillRoundedRectangle(rightUpperBox, 3.0f);
 
     // Draw Tri-Color Segmented Vertical Stereo Meter at X = 118..142, Y = 122..218
-    const float targetL = std::pow(juce::jlimit(0.0f, 1.0f, audioProcessor.getOutputRmsLeft() * 5.5f), 0.50f);
-    const float targetR = std::pow(juce::jlimit(0.0f, 1.0f, audioProcessor.getOutputRmsRight() * 5.5f), 0.50f);
-    smoothedMeterL = (targetL > smoothedMeterL) ? targetL : (smoothedMeterL * 0.84f + targetL * 0.16f);
-    smoothedMeterR = (targetR > smoothedMeterR) ? targetR : (smoothedMeterR * 0.84f + targetR * 0.16f);
+    const float targetL = std::pow(juce::jlimit(0.0f, 1.0f, audioProcessor.getOutputRmsLeft() * 3.6f), 0.62f);
+    const float targetR = std::pow(juce::jlimit(0.0f, 1.0f, audioProcessor.getOutputRmsRight() * 3.6f), 0.62f);
+    smoothedMeterL = (targetL > smoothedMeterL) ? (smoothedMeterL * 0.55f + targetL * 0.45f)
+                                                : (smoothedMeterL * 0.88f + targetL * 0.12f);
+    smoothedMeterR = (targetR > smoothedMeterR) ? (smoothedMeterR * 0.55f + targetR * 0.45f)
+                                                : (smoothedMeterR * 0.88f + targetR * 0.12f);
 
     const int numSegments = 24;
     const float meterTop = 122.0f * scaleY;
