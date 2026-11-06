@@ -3,6 +3,7 @@ name: Build Cross-Platform Installers
 on:
   push:
     branches: [ master, main ]
+    tags: [ 'v*', 'V*' ]
   pull_request:
     branches: [ master, main ]
   workflow_dispatch:
@@ -36,21 +37,21 @@ jobs:
         run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 
       - name: Build Release Targets
-        run: cmake --build build --config Release --target BosendorferImperial_VST3 BosendorferImperial_Standalone -j 4
+        run: cmake --build build --config Release --target ClassicVienna290_VST3 ClassicVienna290_Standalone -j 4
 
       - name: Prepare Artifacts for Inno Setup
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path "build/BosendorferImperial_artefacts/Release/VST3"
-          New-Item -ItemType Directory -Force -Path "build/BosendorferImperial_artefacts/Release/Standalone"
-          if (Test-Path "build/BosendorferImperial_artefacts/VST3") {
-            Copy-Item -Recurse -Force "build/BosendorferImperial_artefacts/VST3/*" "build/BosendorferImperial_artefacts/Release/VST3/"
+          New-Item -ItemType Directory -Force -Path "build/ClassicVienna290_artefacts/Release/VST3"
+          New-Item -ItemType Directory -Force -Path "build/ClassicVienna290_artefacts/Release/Standalone"
+          if (Test-Path "build/ClassicVienna290_artefacts/VST3") {
+            Copy-Item -Recurse -Force "build/ClassicVienna290_artefacts/VST3/*" "build/ClassicVienna290_artefacts/Release/VST3/"
           }
-          if (Test-Path "build/BosendorferImperial_artefacts/Standalone") {
-            Copy-Item -Recurse -Force "build/BosendorferImperial_artefacts/Standalone/*" "build/BosendorferImperial_artefacts/Release/Standalone/"
+          if (Test-Path "build/ClassicVienna290_artefacts/Standalone") {
+            Copy-Item -Recurse -Force "build/ClassicVienna290_artefacts/Standalone/*" "build/ClassicVienna290_artefacts/Release/Standalone/"
           }
           New-Item -ItemType Directory -Force -Path "dist/windows"
-          Get-ChildItem -Recurse build/BosendorferImperial_artefacts
+          Get-ChildItem -Recurse build/ClassicVienna290_artefacts
 
       - name: Compile Inno Setup Installer
         shell: pwsh
@@ -66,7 +67,7 @@ jobs:
       - name: Upload Windows Installer Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Bosendorfer_Imperial_290_Windows_Installer
+          name: Classic_Vienna_290_Windows_Installer
           path: dist/windows/*.exe
 
   # ============================================================================
@@ -91,7 +92,7 @@ jobs:
       - name: Upload macOS Installer Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Bosendorfer_Imperial_290_macOS_Installer
+          name: Classic_Vienna_290_macOS_Installer
           path: dist/mac/*
 
   # ============================================================================
@@ -135,7 +136,7 @@ jobs:
         run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 
       - name: Build Release Targets
-        run: cmake --build build --config Release --target BosendorferImperial_VST3 BosendorferImperial_Standalone -j$(nproc)
+        run: cmake --build build --config Release --target ClassicVienna290_VST3 ClassicVienna290_Standalone -j$(nproc)
 
       - name: Package Linux Distribution
         run: |
@@ -145,10 +146,12 @@ jobs:
       - name: Upload Linux Package Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Bosendorfer_Imperial_290_Linux_Package
+          name: Classic_Vienna_290_Linux_Package
           path: |
             dist/linux/*.tar.gz
             dist/linux/*.zip
+            dist/linux/*.run
+            dist/linux/*.deb
 
   # ============================================================================
   # 4. RELEASE: Publish GitHub Release with all Installers
@@ -165,26 +168,26 @@ jobs:
       - name: Download Windows Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: Bosendorfer_Imperial_290_Windows_Installer
+          name: Classic_Vienna_290_Windows_Installer
           path: release-files/
 
       - name: Download macOS Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: Bosendorfer_Imperial_290_macOS_Installer
+          name: Classic_Vienna_290_macOS_Installer
           path: release-files/
 
       - name: Download Linux Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: Bosendorfer_Imperial_290_Linux_Package
+          name: Classic_Vienna_290_Linux_Package
           path: release-files/
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "v1.0.${{ github.run_number }}"
-          name: "Bosendorfer Imperial 290 v1.0.${{ github.run_number }}"
+          tag_name: "${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('v1.0.{0}', github.run_number) }}"
+          name: "Classic Vienna 290 ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('v1.0.{0}', github.run_number) }}"
           files: release-files/*
           draft: false
           prerelease: false

@@ -2,7 +2,7 @@
 set -e
 
 # ==============================================================================
-# SignalForgeLabs Bosendorfer Imperial 290 - macOS Universal Binary Installer
+# Signal Forge Audio Labs - Classic Vienna 290 - macOS Universal Binary Installer
 # ==============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,13 +10,14 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 VERSION="1.0.0"
-BUNDLE_ID="com.SignalForgeLabs.BosendorferImperial290"
+BUNDLE_ID="com.SignalForgeAudioLabs.ClassicVienna290"
 DIST_DIR="$REPO_ROOT/dist/mac"
 BUILD_DIR="$REPO_ROOT/build"
 TMP_DIR="$REPO_ROOT/build/installer_staging"
 
 echo "======================================================="
 echo " Building macOS Universal Audio Plugin Installer v$VERSION"
+echo " Signal Forge Audio Labs - Classic Vienna 290"
 echo "======================================================="
 
 # 1. Configure and Build Universal Binary (Intel + Apple Silicon)
@@ -27,12 +28,13 @@ cmake -B "$BUILD_DIR" \
     -DCMAKE_OSX_DEPLOYMENT_TARGET="10.13"
 
 echo "[2/5] Compiling Release binaries..."
+cmake --build "$BUILD_DIR" --config Release --target ClassicVienna290_VST3 ClassicVienna290_AU ClassicVienna290_Standalone -j$(sysctl -n hw.ncpu || echo 4) || \
 cmake --build "$BUILD_DIR" --config Release -j$(sysctl -n hw.ncpu || echo 4)
 
 # Locate artifacts
-VST3_SRC=$(find "$BUILD_DIR" -name "Bosendorfer Imperial 290.vst3" -type d | head -n 1)
-AU_SRC=$(find "$BUILD_DIR" -name "Bosendorfer Imperial 290.component" -type d | head -n 1)
-APP_SRC=$(find "$BUILD_DIR" -name "Bosendorfer Imperial 290.app" -type d | head -n 1)
+VST3_SRC=$(find "$BUILD_DIR" -name "Classic Vienna 290.vst3" -type d | head -n 1)
+AU_SRC=$(find "$BUILD_DIR" -name "Classic Vienna 290.component" -type d | head -n 1)
+APP_SRC=$(find "$BUILD_DIR" -name "Classic Vienna 290.app" -type d | head -n 1)
 
 echo "Located artifacts:"
 echo " - VST3: $VST3_SRC"
@@ -40,15 +42,15 @@ echo " - AU:   $AU_SRC"
 echo " - APP:  $APP_SRC"
 
 if [ -z "$VST3_SRC" ] || [ ! -d "$VST3_SRC" ]; then
-    echo "ERROR: Bosendorfer Imperial 290.vst3 was not generated in $BUILD_DIR"
+    echo "ERROR: Classic Vienna 290.vst3 was not generated in $BUILD_DIR"
     exit 1
 fi
 if [ -z "$AU_SRC" ] || [ ! -d "$AU_SRC" ]; then
-    echo "ERROR: Bosendorfer Imperial 290.component was not generated in $BUILD_DIR"
+    echo "ERROR: Classic Vienna 290.component was not generated in $BUILD_DIR"
     exit 1
 fi
 if [ -z "$APP_SRC" ] || [ ! -d "$APP_SRC" ]; then
-    echo "ERROR: Bosendorfer Imperial 290.app was not generated in $BUILD_DIR"
+    echo "ERROR: Classic Vienna 290.app was not generated in $BUILD_DIR"
     exit 1
 fi
 
@@ -65,7 +67,7 @@ pkgbuild --root "$TMP_DIR/root_vst3" \
          --identifier "${BUNDLE_ID}.vst3" \
          --version "$VERSION" \
          --install-location "/" \
-         "$TMP_DIR/packages/Bosendorfer_VST3.pkg"
+         "$TMP_DIR/packages/ClassicVienna290_VST3.pkg"
 
 # Stage AU (Component)
 mkdir -p "$TMP_DIR/root_au/Library/Audio/Plug-Ins/Components"
@@ -74,7 +76,7 @@ pkgbuild --root "$TMP_DIR/root_au" \
          --identifier "${BUNDLE_ID}.au" \
          --version "$VERSION" \
          --install-location "/" \
-         "$TMP_DIR/packages/Bosendorfer_AU.pkg"
+         "$TMP_DIR/packages/ClassicVienna290_AU.pkg"
 
 # Stage Standalone Application
 mkdir -p "$TMP_DIR/root_app/Applications"
@@ -83,20 +85,20 @@ pkgbuild --root "$TMP_DIR/root_app" \
          --identifier "${BUNDLE_ID}.app" \
          --version "$VERSION" \
          --install-location "/" \
-         "$TMP_DIR/packages/Bosendorfer_Standalone.pkg"
+         "$TMP_DIR/packages/ClassicVienna290_Standalone.pkg"
 
 # Stage Documentation
-mkdir -p "$TMP_DIR/root_docs/Library/Audio/Presets/SignalForgeLabs/BosendorferImperial290"
-cp "$REPO_ROOT/packaging/common/README_INSTALL.txt" "$TMP_DIR/root_docs/Library/Audio/Presets/SignalForgeLabs/BosendorferImperial290/README.txt"
+mkdir -p "$TMP_DIR/root_docs/Library/Audio/Presets/SignalForgeAudioLabs/ClassicVienna290"
+cp "$REPO_ROOT/packaging/common/README_INSTALL.txt" "$TMP_DIR/root_docs/Library/Audio/Presets/SignalForgeAudioLabs/ClassicVienna290/README.txt"
 pkgbuild --root "$TMP_DIR/root_docs" \
          --identifier "${BUNDLE_ID}.docs" \
          --version "$VERSION" \
          --install-location "/" \
-         "$TMP_DIR/packages/Bosendorfer_Support.pkg"
+         "$TMP_DIR/packages/ClassicVienna290_Support.pkg"
 
 # 3. Create Multi-Component Distribution Package (.pkg)
 echo "[4/5] Building distribution package with productbuild..."
-PKG_OUT="$DIST_DIR/Bosendorfer_Imperial_290_macOS_Installer_v${VERSION}.pkg"
+PKG_OUT="$DIST_DIR/Classic_Vienna_290_macOS_Installer_v${VERSION}.pkg"
 productbuild --distribution "$SCRIPT_DIR/distribution.xml" \
              --package-path "$TMP_DIR/packages" \
              --resources "$SCRIPT_DIR" \
@@ -109,9 +111,9 @@ mkdir -p "$DMG_STAGING"
 cp "$PKG_OUT" "$DMG_STAGING/"
 cp "$REPO_ROOT/packaging/common/README_INSTALL.txt" "$DMG_STAGING/README.txt"
 
-DMG_OUT="$DIST_DIR/Bosendorfer_Imperial_290_macOS_v${VERSION}.dmg"
+DMG_OUT="$DIST_DIR/Classic_Vienna_290_macOS_v${VERSION}.dmg"
 rm -f "$DMG_OUT"
-hdiutil create -volname "Bosendorfer Imperial 290" \
+hdiutil create -volname "Classic Vienna 290" \
                -srcfolder "$DMG_STAGING" \
                -ov -format UDZO \
                "$DMG_OUT"
@@ -123,4 +125,3 @@ echo " SUCCESS! macOS distribution deliverables generated:"
 echo " 1. Package:    $PKG_OUT"
 echo " 2. Disk Image: $DMG_OUT"
 echo "======================================================="
-

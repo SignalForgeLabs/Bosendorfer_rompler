@@ -1,12 +1,12 @@
-; Inno Setup Script for SignalForgeLabs Bosendorfer Imperial 290
+; Inno Setup Script for Signal Forge Audio Labs Classic Vienna 290
 ; Compatible with Inno Setup 6.x
 
-#define MyAppName "Bosendorfer Imperial 290"
+#define MyAppName "Classic Vienna 290"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "SignalForgeLabs"
-#define MyAppURL "https://github.com/SignalForgeLabs/Bosendorfer_rompler"
-#define MyAppExeName "Bosendorfer Imperial 290.exe"
-#define MyPluginName "Bosendorfer Imperial 290.vst3"
+#define MyAppPublisher "Signal Forge Audio Labs"
+#define MyAppURL "https://sfalabs.digital"
+#define MyAppExeName "Classic Vienna 290.exe"
+#define MyPluginName "Classic Vienna 290.vst3"
 
 [Setup]
 AppId={{B290A97C-4F1E-4C2B-9E88-7D5F3A11B290}
@@ -16,10 +16,10 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={autopf}\SignalForgeLabs\Bosendorfer Imperial 290
-DefaultGroupName=SignalForgeLabs\Bosendorfer Imperial 290
+DefaultDirName={autopf}\Signal Forge Audio Labs\Classic Vienna 290
+DefaultGroupName=Signal Forge Audio Labs\Classic Vienna 290
 DisableProgramGroupPage=no
-OutputBaseFilename=Bosendorfer_Imperial_290_Windows_Setup_v{#MyAppVersion}
+OutputBaseFilename=Classic_Vienna_290_Windows_Setup_v{#MyAppVersion}
 OutputDir=..\..\dist\windows
 Compression=lzma2/ultra64
 SolidCompression=yes
@@ -46,12 +46,12 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 ; 1. VST3 Plugin (Steinberg 64-bit standard folder)
-Source: "..\..\build\BosendorferImperial_artefacts\Release\VST3\{#MyPluginName}\*"; DestDir: "{commoncf}\VST3\{#MyPluginName}"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: vst3; Check: Is64BitInstallMode
-Source: "..\..\build\BosendorferImperial_artefacts\VST3\{#MyPluginName}\*"; DestDir: "{commoncf}\VST3\{#MyPluginName}"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: vst3; Check: Is64BitInstallMode
+Source: "..\..\build\ClassicVienna290_artefacts\Release\VST3\{#MyPluginName}\*"; DestDir: "{commoncf}\VST3\{#MyPluginName}"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: vst3; Check: Is64BitInstallMode
+Source: "..\..\build\ClassicVienna290_artefacts\VST3\{#MyPluginName}\*"; DestDir: "{commoncf}\VST3\{#MyPluginName}"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: vst3; Check: Is64BitInstallMode
 
 ; 2. Standalone Application
-Source: "..\..\build\BosendorferImperial_artefacts\Release\Standalone\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist; Components: standalone
-Source: "..\..\build\BosendorferImperial_artefacts\Standalone\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist; Components: standalone
+Source: "..\..\build\ClassicVienna290_artefacts\Release\Standalone\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist; Components: standalone
+Source: "..\..\build\ClassicVienna290_artefacts\Standalone\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist; Components: standalone
 
 ; 3. Documentation
 Source: "..\common\README_INSTALL.txt"; DestDir: "{app}"; DestName: "README.txt"; Flags: ignoreversion; Components: docs
@@ -71,4 +71,3 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 [UninstallDelete]
 Type: filesandordirs; Name: "{commoncf}\VST3\{#MyPluginName}"
 Type: filesandordirs; Name: "{app}"
-
